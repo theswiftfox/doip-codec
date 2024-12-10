@@ -58,8 +58,8 @@ mod tests {
         payload::{DoipPayload, PayloadError, PayloadType},
     };
 
-    const SOURCE_ADDRESS: [u8; 2] = [0x00, 0x00];
-    const INVALID_LENGTH: [u8; 1] = [0x00];
+    const SOURCE_ADDRESS: [u8; 2] = [0x01, 0x02];
+    const INVALID_LENGTH: [u8; 1] = [0x03];
 
     #[test]
     fn test_payload_type() {
@@ -75,21 +75,6 @@ mod tests {
             source_address: SOURCE_ADDRESS,
         };
         assert_eq!(request.to_bytes(), SOURCE_ADDRESS.to_vec());
-    }
-
-    #[test]
-    fn test_from_bytes_ok() {
-        let bytes = AliveCheckResponse {
-            source_address: SOURCE_ADDRESS,
-        }
-        .to_bytes();
-
-        let request = AliveCheckResponse::from_bytes(&bytes);
-
-        assert!(
-            request.is_ok(),
-            "Expected AliveCheckResponse, recieved an Error."
-        );
     }
 
     #[test]
@@ -109,6 +94,21 @@ mod tests {
             PayloadError::AliveCheckResponseParseError(AliveCheckResponseParseError::InvalidLength),
             "Unexpected error message: {}",
             error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let bytes = AliveCheckResponse {
+            source_address: SOURCE_ADDRESS,
+        }
+        .to_bytes();
+
+        let request = AliveCheckResponse::from_bytes(&bytes);
+
+        assert!(
+            request.is_ok(),
+            "Expected AliveCheckResponse, recieved an Error."
         );
     }
 }

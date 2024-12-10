@@ -16,3 +16,34 @@ impl DoipPayload for PowerInformationRequest {
         Ok(Self {})
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::header::payload::{
+        payload::{DoipPayload, PayloadType},
+        power_information_request::PowerInformationRequest,
+    };
+
+    #[test]
+    fn test_payload_type() {
+        let request = PowerInformationRequest {};
+        assert_eq!(request.payload_type(), PayloadType::PowerInformationRequest);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = PowerInformationRequest {};
+        assert_eq!(request.to_bytes(), vec![]);
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let bytes = PowerInformationRequest {}.to_bytes();
+        let request = PowerInformationRequest::from_bytes(&bytes);
+
+        assert!(
+            request.is_ok(),
+            "Expected PowerInformationRequest, recieved an Error."
+        );
+    }
+}

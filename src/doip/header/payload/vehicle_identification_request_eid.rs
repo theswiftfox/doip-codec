@@ -49,3 +49,66 @@ pub enum VehicleIdentificationRequestEidError {
     #[error("invalid index range supplied")]
     InvalidIndexRange,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        definitions::DOIP_COMMON_EID_LEN,
+        header::payload::{
+            payload::{DoipPayload, PayloadError, PayloadType},
+            vehicle_identification_request_eid::{
+                VehicleIdentificationRequestEid, VehicleIdentificationRequestEidError,
+            },
+        },
+    };
+
+    const DEFAULT_EID: [u8; DOIP_COMMON_EID_LEN] = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05];
+
+    #[test]
+    fn test_payload_type() {
+        let request = VehicleIdentificationRequestEid { eid: DEFAULT_EID };
+        assert_eq!(
+            request.payload_type(),
+            PayloadType::VehicleIdentificationRequestEid
+        );
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = VehicleIdentificationRequestEid { eid: DEFAULT_EID };
+        assert_eq!(request.to_bytes(), DEFAULT_EID.to_vec());
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_length() {
+        let bytes = [0x00, 0x01, 0x02, 0x03, 0x04];
+        let request = VehicleIdentificationRequestEid::from_bytes(&bytes);
+
+        assert!(
+            request.is_err(),
+            "Expected to receive an VehicleIdentificationRequestEidParse::InvalidLength."
+        );
+
+        let error = request.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::VehicleIdentificationRequestEidError(
+                VehicleIdentificationRequestEidError::InvalidLength
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let bytes = VehicleIdentificationRequestEid { eid: DEFAULT_EID }.to_bytes();
+        let request = VehicleIdentificationRequestEid::from_bytes(&bytes);
+
+        assert!(
+            request.is_ok(),
+            "Expected VehicleIdentificationRequestEid, recieved an Error."
+        );
+    }
+}

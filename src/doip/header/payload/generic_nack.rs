@@ -31,7 +31,7 @@ impl DoipPayload for GenericNack {
             ));
         }
 
-        let nack_code_offset = DOIP_GENERIC_NACK_LEN;
+        let nack_code_offset = 0;
         let nack_code = match &bytes[nack_code_offset] {
             0x00 => NackCodes::IncorrectPatternFormat,
             0x01 => NackCodes::UnknownPayloadType,
@@ -57,4 +57,87 @@ pub enum GenericNackError {
     InvalidIndexRange,
     #[error("invalid nack code")]
     InvalidNackCode,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        header::payload::{
+            generic_nack::{GenericNack, GenericNackError},
+            payload::{DoipPayload, PayloadError, PayloadType},
+        },
+        message::nack_codes::NackCodes,
+    };
+
+    const DEFAULT_NACK_CODE: NackCodes = NackCodes::IncorrectPatternFormat;
+
+    #[test]
+    fn test_payload_type() {
+        let request = GenericNack {
+            nack_code: DEFAULT_NACK_CODE,
+        };
+        assert_eq!(request.payload_type(), PayloadType::GenericNack);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = GenericNack {
+            nack_code: DEFAULT_NACK_CODE,
+        };
+        assert_eq!(request.to_bytes(), vec![0x00]);
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![];
+        let from_bytes = GenericNack::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an GenericNackError::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::GenericNackError(GenericNackError::InvalidLength),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_nack_code() {
+        let request = vec![0x05];
+        let from_bytes = GenericNack::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an GenericNackError::InvalidNackCode."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::GenericNackError(GenericNackError::InvalidNackCode),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = GenericNack {
+            nack_code: DEFAULT_NACK_CODE,
+        }
+        .to_bytes();
+        let from_bytes = GenericNack::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected GenericNack, recieved an Error."
+        );
+    }
 }

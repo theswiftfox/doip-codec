@@ -16,3 +16,34 @@ impl DoipPayload for EntityStatusRequest {
         Ok(Self {})
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::header::payload::{
+        entity_status_request::EntityStatusRequest,
+        payload::{DoipPayload, PayloadType},
+    };
+
+    #[test]
+    fn test_payload_type() {
+        let request = EntityStatusRequest {};
+        assert_eq!(request.payload_type(), PayloadType::EntityStatusRequest);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = EntityStatusRequest {};
+        assert_eq!(request.to_bytes(), vec![]);
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let bytes = EntityStatusRequest {}.to_bytes();
+        let request = EntityStatusRequest::from_bytes(&bytes);
+
+        assert!(
+            request.is_ok(),
+            "Expected EntityStatusRequest, recieved an Error."
+        );
+    }
+}

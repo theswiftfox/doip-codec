@@ -19,7 +19,12 @@ use super::{
     diagnostic_message_nack::DiagnosticMessageNackParseError,
     entity_status_response::EntityStatusResponseError,
     generic_nack::GenericNackError,
-    power_information_response::{PowerInformationResponse, PowerInformationResponseError}, routing_activation_request::RoutingActivationRequestError, routing_activation_response::RoutingActivationResponseError, vehicle_announcement_message::VehicleAnnouncementMessageError, vehicle_identification_request_eid::VehicleIdentificationRequestEidError, vehicle_identification_request_vin::VehicleIdentificationRequestVinError,
+    power_information_response::{PowerInformationResponse, PowerInformationResponseError},
+    routing_activation_request::RoutingActivationRequestError,
+    routing_activation_response::RoutingActivationResponseError,
+    vehicle_announcement_message::VehicleAnnouncementMessageError,
+    vehicle_identification_request_eid::VehicleIdentificationRequestEidError,
+    vehicle_identification_request_vin::VehicleIdentificationRequestVinError,
 };
 
 pub trait DoipPayload: Debug + Send {

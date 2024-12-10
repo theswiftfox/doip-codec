@@ -90,3 +90,94 @@ pub enum DiagnosticMessageAckError {
     #[error("invalid acknowledgement code")]
     InvalidAckCode,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        header::payload::{
+            diagnostic_message_ack::{DiagnosticMessageAck, DiagnosticMessageAckError},
+            payload::{DoipPayload, PayloadError, PayloadType},
+        },
+        message::diagnostic_ack::DiagnosticAckCode,
+    };
+
+    const DEFAULT_SOURCE_ADDRESS: [u8; 2] = [0x01, 0x02];
+    const DEFAULT_TARGET_ADDRESS: [u8; 2] = [0x03, 0x04];
+    const DEFAULT_ACK_CODE: DiagnosticAckCode = DiagnosticAckCode::Acknowledged;
+
+    #[test]
+    fn test_payload_type() {
+        let request = DiagnosticMessageAck {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            ack_code: DEFAULT_ACK_CODE,
+        };
+        assert_eq!(request.payload_type(), PayloadType::DiagnosticMessageAck);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = DiagnosticMessageAck {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            ack_code: DEFAULT_ACK_CODE,
+        };
+        assert_eq!(request.to_bytes(), vec![0x01, 0x02, 0x03, 0x04, 0x00]);
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![0x01, 0x02, 0x03];
+        let from_bytes = DiagnosticMessageAck::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an DiagnosticMessageAckError::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::DiagnosticMessageAckError(DiagnosticMessageAckError::InvalidLength),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_ack_code() {
+        let request = vec![0x01, 0x02, 0x03, 0x04, 0x01];
+        let from_bytes = DiagnosticMessageAck::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an DiagnosticMessageAckError::InvalidAckCode."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::DiagnosticMessageAckError(DiagnosticMessageAckError::InvalidAckCode),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = DiagnosticMessageAck {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            ack_code: DEFAULT_ACK_CODE,
+        }
+        .to_bytes();
+        let from_bytes = DiagnosticMessageAck::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected DiagnosticMessageAck, recieved an Error."
+        );
+    }
+}

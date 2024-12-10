@@ -49,3 +49,69 @@ pub enum VehicleIdentificationRequestVinError {
     #[error("invalid index range supplied")]
     InvalidIndexRange,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        definitions::DOIP_COMMON_VIN_LEN,
+        header::payload::{
+            payload::{DoipPayload, PayloadError, PayloadType},
+            vehicle_identification_request_eid::{
+                VehicleIdentificationRequestEid, VehicleIdentificationRequestEidError,
+            }, vehicle_identification_request_vin::{VehicleIdentificationRequestVin, VehicleIdentificationRequestVinError},
+        },
+    };
+
+    const DEFAULT_VIN: [u8; DOIP_COMMON_VIN_LEN] = [
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11,
+    ];
+
+    #[test]
+    fn test_payload_type() {
+        let request = VehicleIdentificationRequestVin { vin: DEFAULT_VIN };
+        assert_eq!(
+            request.payload_type(),
+            PayloadType::VehicleIdentificationRequestVin
+        );
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = VehicleIdentificationRequestVin { vin: DEFAULT_VIN };
+        assert_eq!(request.to_bytes(), DEFAULT_VIN.to_vec());
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_length() {
+        let bytes = [0x00, 0x01, 0x02, 0x03, 0x04];
+        let request = VehicleIdentificationRequestVin::from_bytes(&bytes);
+
+        assert!(
+            request.is_err(),
+            "Expected to receive an VehicleIdentificationRequestVinParse::InvalidLength."
+        );
+
+        let error = request.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::VehicleIdentificationRequestVinError(
+                VehicleIdentificationRequestVinError::InvalidLength
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let bytes = VehicleIdentificationRequestVin { vin: DEFAULT_VIN }.to_bytes();
+        let request = VehicleIdentificationRequestVin::from_bytes(&bytes);
+
+        assert!(
+            request.is_ok(),
+            "Expected VehicleIdentificationRequestVin, recieved an Error."
+        );
+    }
+}

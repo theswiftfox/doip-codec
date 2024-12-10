@@ -3,7 +3,7 @@ use thiserror::Error;
 use crate::doip::{
     definitions::{
         DOIP_ROUTING_ACTIVATION_REQ_ISO_LEN, DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN,
-        DOIP_ROUTING_ACTIVATION_REQ_TYPE_LEN_V1,
+        DOIP_ROUTING_ACTIVATION_REQ_TYPE_LEN_V2,
     },
     message::activation_type::ActivationType,
 };
@@ -35,7 +35,7 @@ impl DoipPayload for RoutingActivationRequest {
     fn from_bytes(bytes: &[u8]) -> Result<Self, PayloadError> {
         // Check that bytes have sufficient length
         let min_length = DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN
-            + DOIP_ROUTING_ACTIVATION_REQ_TYPE_LEN_V1
+            + DOIP_ROUTING_ACTIVATION_REQ_TYPE_LEN_V2
             + DOIP_ROUTING_ACTIVATION_REQ_ISO_LEN;
 
         if bytes.len() < min_length {
@@ -56,7 +56,7 @@ impl DoipPayload for RoutingActivationRequest {
             };
 
         let activation_type_offset =
-            source_address_offset + DOIP_ROUTING_ACTIVATION_REQ_TYPE_LEN_V1;
+            source_address_offset + 0;
 
         let activation_type = match &bytes[activation_type_offset] {
             0x00 => ActivationType::Default,
@@ -64,7 +64,7 @@ impl DoipPayload for RoutingActivationRequest {
             0x02 => ActivationType::CentralSecurity,
             _ => {
                 return Err(PayloadError::RoutingActivationRequestError(
-                    RoutingActivationRequestError::ActivationType,
+                    RoutingActivationRequestError::InvalidActivationType,
                 ))
             }
         };
@@ -95,5 +95,107 @@ pub enum RoutingActivationRequestError {
     #[error("invalid index range supplied")]
     InvalidIndexRange,
     #[error("activation type not supported")]
-    ActivationType,
+    InvalidActivationType,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        header::payload::{
+            payload::{DoipPayload, PayloadError, PayloadType},
+            routing_activation_request::{RoutingActivationRequest, RoutingActivationRequestError},
+        },
+        message::activation_type::ActivationType,
+    };
+
+    const DEFAULT_SOURCE_ADDRESS: [u8; 2] = [0x01, 0x02];
+    const DEFAULT_ACTIVATION_TYPE: ActivationType = ActivationType::Default;
+    const DEFAULT_BUFFER: [u8; 4] = [0x00, 0x00, 0x00, 0x00];
+
+    #[test]
+    fn test_payload_type() {
+        let request = RoutingActivationRequest {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            activation_type: DEFAULT_ACTIVATION_TYPE,
+            buffer: DEFAULT_BUFFER,
+        };
+        assert_eq!(
+            request.payload_type(),
+            PayloadType::RoutingActivationRequest
+        );
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = RoutingActivationRequest {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            activation_type: DEFAULT_ACTIVATION_TYPE,
+            buffer: DEFAULT_BUFFER,
+        };
+        assert_eq!(
+            request.to_bytes(),
+            vec![0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00]
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![0x01, 0x02, 0x03];
+        let from_bytes = RoutingActivationRequest::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an RoutingActivationRequestError::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::RoutingActivationRequestError(
+                RoutingActivationRequestError::InvalidLength
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_activation_type() {
+        let request = vec![0x01, 0x02, 0x07, 0x01, 0x02, 0x03, 0x04];
+        let from_bytes = RoutingActivationRequest::from_bytes(&request);
+        dbg!(&from_bytes);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an RoutingActivationRequestError::InvalidActivationType."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::RoutingActivationRequestError(
+                RoutingActivationRequestError::InvalidActivationType
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = RoutingActivationRequest {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            activation_type: DEFAULT_ACTIVATION_TYPE,
+            buffer: DEFAULT_BUFFER,
+        }
+        .to_bytes();
+        let from_bytes = RoutingActivationRequest::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected RoutingActivationRequest, recieved an Error."
+        );
+    }
 }

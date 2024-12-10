@@ -75,3 +75,73 @@ pub enum DiagnosticMessageError {
     #[error("invalid index range supplied")]
     InvalidIndexRange,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::header::payload::{
+        diagnostic_message::{DiagnosticMessage, DiagnosticMessageError},
+        payload::{DoipPayload, PayloadError, PayloadType},
+    };
+
+    const DEFAULT_SOURCE_ADDRESS: [u8; 2] = [0x01, 0x02];
+    const DEFAULT_TARGET_ADDRESS: [u8; 2] = [0x03, 0x04];
+
+    #[test]
+    fn test_payload_type() {
+        let request = DiagnosticMessage {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            message: vec![0x05, 0x06, 0x07, 0x08],
+        };
+        assert_eq!(request.payload_type(), PayloadType::DiagnosticMessage);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = DiagnosticMessage {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            message: vec![0x05, 0x06, 0x07, 0x08],
+        };
+        assert_eq!(
+            request.to_bytes(),
+            vec![0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![0x01, 0x02, 0x03];
+        let from_bytes = DiagnosticMessage::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an DiagnosticMessage::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::DiagnosticMessageError(DiagnosticMessageError::InvalidLength),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = DiagnosticMessage {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            message: vec![0x05, 0x06, 0x07, 0x08],
+        }
+        .to_bytes();
+        let from_bytes = DiagnosticMessage::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected DiagnosticMessage, recieved an Error."
+        );
+    }
+}

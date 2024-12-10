@@ -71,6 +71,7 @@ impl DoipPayload for RoutingActivationResponse {
             };
 
         let activation_code_offset = source_address_offset;
+        dbg!(&activation_code_offset);
 
         let activation_code = match &bytes[activation_code_offset] {
             0x00 => ActivationCode::DeniedUnknownSourceAddress,
@@ -131,4 +132,114 @@ pub enum RoutingActivationResponseError {
     InvalidIndexRange,
     #[error("activation code not supported")]
     InvalidActivationCode,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        header::payload::{
+            diagnostic_message_ack::{DiagnosticMessageAck, DiagnosticMessageAckError},
+            payload::{DoipPayload, PayloadError, PayloadType},
+            routing_activation_response::{
+                RoutingActivationResponse, RoutingActivationResponseError,
+            },
+        },
+        message::activation_code::ActivationCode,
+    };
+
+    const DEFAULT_LOGICAL_ADDRESS: [u8; 2] = [0x01, 0x02];
+    const DEFAULT_SOURCE_ADDRESS: [u8; 2] = [0x03, 0x04];
+    const DEFAULT_ACTIVATION_CODE: ActivationCode = ActivationCode::DeniedUnknownSourceAddress;
+    const DEFAULT_BUFFER: [u8; 4] = [0x01, 0x02, 0x03, 0x04];
+
+    #[test]
+    fn test_payload_type() {
+        let request = RoutingActivationResponse {
+            logical_address: DEFAULT_LOGICAL_ADDRESS,
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            activation_code: DEFAULT_ACTIVATION_CODE,
+            buffer: DEFAULT_BUFFER,
+        };
+        assert_eq!(
+            request.payload_type(),
+            PayloadType::RoutingActivationResponse
+        );
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = RoutingActivationResponse {
+            logical_address: DEFAULT_LOGICAL_ADDRESS,
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            activation_code: DEFAULT_ACTIVATION_CODE,
+            buffer: DEFAULT_BUFFER,
+        };
+        assert_eq!(
+            request.to_bytes(),
+            vec![0x01, 0x02, 0x03, 0x04, 0x00, 0x01, 0x02, 0x03, 0x04]
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![0x01, 0x02, 0x03];
+        let from_bytes = RoutingActivationResponse::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an RoutingActivationResponseError::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::RoutingActivationResponseError(
+                RoutingActivationResponseError::InvalidLength
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_ack_code() {
+        let request = vec![0x01, 0x02, 0x03, 0x04, 0x12, 0x01, 0x02, 0x03, 0x04];
+        let from_bytes = RoutingActivationResponse::from_bytes(&request);
+
+        dbg!(&from_bytes);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an RoutingActivationResponseError::InvalidActivationCode."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::RoutingActivationResponseError(
+                RoutingActivationResponseError::InvalidActivationCode
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = RoutingActivationResponse {
+            logical_address: DEFAULT_LOGICAL_ADDRESS,
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            activation_code: DEFAULT_ACTIVATION_CODE,
+            buffer: DEFAULT_BUFFER,
+        }
+        .to_bytes();
+        let from_bytes = RoutingActivationResponse::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected RoutingActivationResponse, recieved an Error."
+        );
+    }
 }

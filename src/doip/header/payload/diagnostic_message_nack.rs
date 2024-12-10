@@ -4,7 +4,7 @@ use crate::doip::{
     definitions::{
         DOIP_DIAG_COMMON_SOURCE_LEN, DOIP_DIAG_COMMON_TARGET_LEN, DOIP_DIAG_MESSAGE_NACK_CODE_LEN,
     },
-    message::diagnostic_nack::DiagnosticNackNode,
+    message::diagnostic_nack::DiagnosticNackCode,
 };
 
 use super::payload::{DoipPayload, PayloadError, PayloadType};
@@ -13,7 +13,7 @@ use super::payload::{DoipPayload, PayloadError, PayloadType};
 pub struct DiagnosticMessageNack {
     pub source_address: [u8; 2],
     pub target_address: [u8; 2],
-    pub nack_code: DiagnosticNackNode,
+    pub nack_code: DiagnosticNackCode,
 }
 
 impl DoipPayload for DiagnosticMessageNack {
@@ -67,15 +67,15 @@ impl DoipPayload for DiagnosticMessageNack {
 
         let nack_code_offset = target_address_offset;
         let nack_code = match &bytes[nack_code_offset] {
-            0x00 => DiagnosticNackNode::ReservedByIso13400_00,
-            0x01 => DiagnosticNackNode::ReservedByIso13400_01,
-            0x02 => DiagnosticNackNode::InvalidSourceAddress,
-            0x03 => DiagnosticNackNode::UnknownTargetAddress,
-            0x04 => DiagnosticNackNode::DiagnosticMessageTooLarge,
-            0x05 => DiagnosticNackNode::OutOfMemory,
-            0x06 => DiagnosticNackNode::TargetUnreachable,
-            0x07 => DiagnosticNackNode::UnknownNetwork,
-            0x08 => DiagnosticNackNode::TransportProtocolError,
+            0x00 => DiagnosticNackCode::ReservedByIso13400_00,
+            0x01 => DiagnosticNackCode::ReservedByIso13400_01,
+            0x02 => DiagnosticNackCode::InvalidSourceAddress,
+            0x03 => DiagnosticNackCode::UnknownTargetAddress,
+            0x04 => DiagnosticNackCode::DiagnosticMessageTooLarge,
+            0x05 => DiagnosticNackCode::OutOfMemory,
+            0x06 => DiagnosticNackCode::TargetUnreachable,
+            0x07 => DiagnosticNackCode::UnknownNetwork,
+            0x08 => DiagnosticNackCode::TransportProtocolError,
             _ => {
                 return Err(PayloadError::DiagnosticMessageNackParseError(
                     DiagnosticMessageNackParseError::InvalidNackCode,
@@ -99,4 +99,98 @@ pub enum DiagnosticMessageNackParseError {
     InvalidIndexRange,
     #[error("invalid negative acknowledgement code")]
     InvalidNackCode,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        header::payload::{
+            diagnostic_message_nack::{DiagnosticMessageNack, DiagnosticMessageNackParseError},
+            payload::{DoipPayload, PayloadError, PayloadType},
+        },
+        message::diagnostic_nack::DiagnosticNackCode,
+    };
+
+    const DEFAULT_SOURCE_ADDRESS: [u8; 2] = [0x01, 0x02];
+    const DEFAULT_TARGET_ADDRESS: [u8; 2] = [0x03, 0x04];
+    const DEFAULT_NACK_CODE: DiagnosticNackCode = DiagnosticNackCode::ReservedByIso13400_00;
+
+    #[test]
+    fn test_payload_type() {
+        let request = DiagnosticMessageNack {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            nack_code: DEFAULT_NACK_CODE,
+        };
+        assert_eq!(request.payload_type(), PayloadType::DiagnosticMessageNack);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = DiagnosticMessageNack {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            nack_code: DEFAULT_NACK_CODE,
+        };
+        assert_eq!(request.to_bytes(), vec![0x01, 0x02, 0x03, 0x04, 0x00]);
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![0x01, 0x02, 0x03];
+        let from_bytes = DiagnosticMessageNack::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an DiagnosticMessageNackParseError::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::DiagnosticMessageNackParseError(
+                DiagnosticMessageNackParseError::InvalidLength
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+    #[test]
+    fn test_from_bytes_invalid_nack_code() {
+        let request = vec![0x01, 0x02, 0x03, 0x04, 0x09];
+        let from_bytes = DiagnosticMessageNack::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an DiagnosticMessageNackParseError::InvalidAckCode."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::DiagnosticMessageNackParseError(
+                DiagnosticMessageNackParseError::InvalidNackCode
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = DiagnosticMessageNack {
+            source_address: DEFAULT_SOURCE_ADDRESS,
+            target_address: DEFAULT_TARGET_ADDRESS,
+            nack_code: DEFAULT_NACK_CODE,
+        }
+        .to_bytes();
+        let from_bytes = DiagnosticMessageNack::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected DiagnosticMessageNack, recieved an Error."
+        );
+    }
 }

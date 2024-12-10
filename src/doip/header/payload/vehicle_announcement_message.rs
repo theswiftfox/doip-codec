@@ -167,3 +167,134 @@ pub enum VehicleAnnouncementMessageError {
     #[error("action code not supported")]
     InvalidActionCode,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        definitions::{
+            DOIP_COMMON_EID_LEN, DOIP_COMMON_VIN_LEN, DOIP_DIAG_COMMON_SOURCE_LEN,
+            DOIP_VEHICLE_ANNOUNCEMENT_GID_LEN,
+        },
+        header::payload::{
+            payload::{DoipPayload, PayloadError, PayloadType},
+            vehicle_announcement_message::{
+                VehicleAnnouncementMessage, VehicleAnnouncementMessageError,
+            },
+        },
+        message::{action_code::ActionCode, sync_status::SyncStatus},
+    };
+
+    const DEFAULT_VIN: [u8; DOIP_COMMON_VIN_LEN] = [
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11,
+    ];
+    const DEFAULT_LOGICAL_ADDRESS: [u8; DOIP_DIAG_COMMON_SOURCE_LEN] = [0x12, 0x13];
+    const DEFAULT_EID: [u8; DOIP_COMMON_EID_LEN] = [0x14, 0x15, 0x16, 0x17, 0x18, 0x19];
+    const DEFAULT_GID: [u8; DOIP_VEHICLE_ANNOUNCEMENT_GID_LEN] =
+        [0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f];
+    const DEFAULT_FURTHER_ACTION_CODE: ActionCode = ActionCode::NoFurtherActionRequired;
+    const DEFAULT_VIN_GID_SYNC: Option<SyncStatus> = Some(SyncStatus::VinGinSynchronized);
+
+    #[test]
+    fn test_payload_type() {
+        let request = VehicleAnnouncementMessage {
+            vin: DEFAULT_VIN,
+            logical_address: DEFAULT_LOGICAL_ADDRESS,
+            eid: DEFAULT_EID,
+            gid: DEFAULT_GID,
+            further_action: DEFAULT_FURTHER_ACTION_CODE,
+            vin_gid_sync: DEFAULT_VIN_GID_SYNC,
+        };
+        assert_eq!(
+            request.payload_type(),
+            PayloadType::VehicleAnnouncementMessage
+        );
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = VehicleAnnouncementMessage {
+            vin: DEFAULT_VIN,
+            logical_address: DEFAULT_LOGICAL_ADDRESS,
+            eid: DEFAULT_EID,
+            gid: DEFAULT_GID,
+            further_action: DEFAULT_FURTHER_ACTION_CODE,
+            vin_gid_sync: DEFAULT_VIN_GID_SYNC,
+        };
+        assert_eq!(
+            request.to_bytes(),
+            vec![
+                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+                0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c,
+                0x1d, 0x1e, 0x1f, 0x00, 0x00
+            ]
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![0x01, 0x02, 0x03];
+        let from_bytes = VehicleAnnouncementMessage::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an VehicleAnnouncementMessageError::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::VehicleAnnouncementMessageError(
+                VehicleAnnouncementMessageError::InvalidLength
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_action_code() {
+        let request = vec![
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+            0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c,
+            0x1d, 0x1e, 0x1f, 0x11, 0x00,
+        ];
+        let from_bytes = VehicleAnnouncementMessage::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an VehicleAnnouncementMessageError::InvalidActionCode."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::VehicleAnnouncementMessageError(
+                VehicleAnnouncementMessageError::InvalidActionCode
+            ),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = VehicleAnnouncementMessage {
+            vin: DEFAULT_VIN,
+            logical_address: DEFAULT_LOGICAL_ADDRESS,
+            eid: DEFAULT_EID,
+            gid: DEFAULT_GID,
+            further_action: DEFAULT_FURTHER_ACTION_CODE,
+            vin_gid_sync: DEFAULT_VIN_GID_SYNC,
+        }
+        .to_bytes();
+        let from_bytes = VehicleAnnouncementMessage::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected VehicleAnnouncementMessage, recieved an Error."
+        );
+    }
+}

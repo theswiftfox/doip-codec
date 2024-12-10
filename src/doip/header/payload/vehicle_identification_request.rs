@@ -16,3 +16,34 @@ impl DoipPayload for VehicleIdentificationRequest {
         Ok(Self {})
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::header::payload::{
+        entity_status_request::EntityStatusRequest,
+        payload::{DoipPayload, PayloadType}, vehicle_identification_request::VehicleIdentificationRequest,
+    };
+
+    #[test]
+    fn test_payload_type() {
+        let request = VehicleIdentificationRequest {};
+        assert_eq!(request.payload_type(), PayloadType::VehicleIdentificationRequest);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = VehicleIdentificationRequest {};
+        assert_eq!(request.to_bytes(), vec![]);
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let bytes = VehicleIdentificationRequest {}.to_bytes();
+        let request = VehicleIdentificationRequest::from_bytes(&bytes);
+
+        assert!(
+            request.is_ok(),
+            "Expected VehicleIdentificationRequest, recieved an Error."
+        );
+    }
+}

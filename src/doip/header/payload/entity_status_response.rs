@@ -111,3 +111,101 @@ pub enum EntityStatusResponseError {
     #[error("invalid node type")]
     InvalidNodeType,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::{
+        header::payload::{
+            entity_status_response::{EntityStatusResponse, EntityStatusResponseError},
+            payload::{DoipPayload, PayloadError, PayloadType},
+        },
+        message::node_type::NodeType,
+    };
+
+    const DEFAULT_NODE_TYPE: NodeType = NodeType::DoipNode;
+    const DEFAULT_MAX_CONCURRENT_SOCKETS: [u8; 1] = [0x02];
+    const DEFAULT_CURRENTLY_OPEN_SOCKETS: [u8; 1] = [0x03];
+    const DEFAULT_MAX_DATA_SIZE: [u8; 4] = [0x04, 0x05, 0x06, 0x07];
+
+    #[test]
+    fn test_payload_type() {
+        let request = EntityStatusResponse {
+            node_type: DEFAULT_NODE_TYPE,
+            max_concurrent_sockets: DEFAULT_MAX_CONCURRENT_SOCKETS,
+            currently_open_sockets: DEFAULT_CURRENTLY_OPEN_SOCKETS,
+            max_data_size: DEFAULT_MAX_DATA_SIZE,
+        };
+        assert_eq!(request.payload_type(), PayloadType::EntityStatusResponse);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let request = EntityStatusResponse {
+            node_type: DEFAULT_NODE_TYPE,
+            max_concurrent_sockets: DEFAULT_MAX_CONCURRENT_SOCKETS,
+            currently_open_sockets: DEFAULT_CURRENTLY_OPEN_SOCKETS,
+            max_data_size: DEFAULT_MAX_DATA_SIZE,
+        };
+        assert_eq!(
+            request.to_bytes(),
+            vec![0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07]
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_too_short() {
+        let request = vec![0x01, 0x02, 0x03];
+        let from_bytes = EntityStatusResponse::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an EntityStatusResponseError::InvalidLength."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::EntityStatusResponseError(EntityStatusResponseError::InvalidLength),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_invalid_node_type() {
+        let request = vec![0x03, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
+        let from_bytes = EntityStatusResponse::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_err(),
+            "Expected to receive an EntityStatusResponseError::InvalidAckCode."
+        );
+
+        let error = from_bytes.unwrap_err();
+
+        assert_eq!(
+            error,
+            PayloadError::EntityStatusResponseError(EntityStatusResponseError::InvalidNodeType),
+            "Unexpected error message: {}",
+            error
+        );
+    }
+
+    #[test]
+    fn test_from_bytes_ok() {
+        let request = EntityStatusResponse {
+            node_type: DEFAULT_NODE_TYPE,
+            max_concurrent_sockets: DEFAULT_MAX_CONCURRENT_SOCKETS,
+            currently_open_sockets: DEFAULT_CURRENTLY_OPEN_SOCKETS,
+            max_data_size: DEFAULT_MAX_DATA_SIZE,
+        }
+        .to_bytes();
+        let from_bytes = EntityStatusResponse::from_bytes(&request);
+
+        assert!(
+            from_bytes.is_ok(),
+            "Expected DiagnosticMessageAck, recieved an Error."
+        );
+    }
+}
