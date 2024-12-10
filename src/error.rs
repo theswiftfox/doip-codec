@@ -20,4 +20,6 @@ pub enum ParseError {
 pub enum DecodeError {
     #[error("Underlying I/O Error: {0}")]
     IoError(#[from] io::Error),
+    #[error("Underlying Parse Error: {0}")]
+    ParseError(#[from] ParseError),
 }

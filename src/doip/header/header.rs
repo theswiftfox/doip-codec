@@ -3,7 +3,7 @@ use super::{
     version::DoipVersion,
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DoipHeader {
     pub protocol_version: DoipVersion,
     pub inverse_protocol_version: u8,

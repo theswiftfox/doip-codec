@@ -58,152 +58,137 @@ impl DoipMessage {
         bytes
     }
 
-    pub fn parse_from_bytes(mut src: Vec<u8>) -> Result<Vec<DoipMessage>, ParseError> {
-        let mut messages: Vec<DoipMessage> = Vec::<DoipMessage>::new();
-
+    pub fn parse_from_bytes(src: Vec<u8>) -> Result<DoipMessage, ParseError> {
         if src.is_empty() {
             return Err(ParseError::EmptyInput);
         }
 
-        while !src.is_empty() {
-            if src.len() < DOIP_HEADER_LEN {
-                break;
+        let protocol_version = match DoipVersion::from_u8(src[DOIP_VERSION_OFFSET]) {
+            Some(v) => v,
+            None => return Err(ParseError::InvalidProtocolVersion),
+        };
+
+        match !protocol_version.to_u8() == src[DOIP_INV_VERSION_OFFSET] {
+            true => {}
+            false => return Err(ParseError::FailedProtocolCheck),
+        };
+
+        let payload_type = match PayloadType::from_bytes(
+            &src[DOIP_TYPE_OFFSET..(DOIP_TYPE_OFFSET + DOIP_TYPE_LEN)],
+        ) {
+            Ok(p) => p,
+            Err(err) => return Err(ParseError::PayloadParseError(err)),
+        };
+
+        let payload_length = u32::from_be_bytes([
+            src[DOIP_LENGTH_OFFSET],
+            src[DOIP_LENGTH_OFFSET + 1],
+            src[DOIP_LENGTH_OFFSET + 2],
+            src[DOIP_LENGTH_OFFSET + 3],
+        ]) as usize;
+
+        let payload_data = &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + payload_length];
+
+        let payload: Box<dyn DoipPayload> = match payload_type {
+            PayloadType::GenericNack => {
+                // Assuming GenericNack implements DoipPayload
+                match GenericNack::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
             }
-
-            let protocol_version = match DoipVersion::from_u8(src[DOIP_VERSION_OFFSET]) {
-                Some(v) => v,
-                None => return Err(ParseError::InvalidProtocolVersion),
-            };
-
-            match !protocol_version.to_u8() == src[DOIP_INV_VERSION_OFFSET] {
-                true => {}
-                false => return Err(ParseError::FailedProtocolCheck),
-            };
-
-            let payload_type = match PayloadType::from_bytes(
-                &src[DOIP_TYPE_OFFSET..(DOIP_TYPE_OFFSET + DOIP_TYPE_LEN)],
-            ) {
-                Ok(p) => p,
+            PayloadType::VehicleIdentificationRequest => {
+                match VehicleIdentificationRequest::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::VehicleIdentificationRequestEid => {
+                match VehicleIdentificationRequestEid::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::VehicleIdentificationRequestVin => {
+                match VehicleIdentificationRequestVin::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::VehicleAnnouncementMessage => {
+                match VehicleAnnouncementMessage::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::RoutingActivationRequest => {
+                match RoutingActivationRequest::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::RoutingActivationResponse => {
+                match RoutingActivationResponse::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::AliveCheckRequest => match AliveCheckRequest::from_bytes(payload_data) {
+                Ok(p) => Box::new(p),
                 Err(err) => return Err(ParseError::PayloadParseError(err)),
-            };
-
-            let payload_length = u32::from_be_bytes([
-                src[DOIP_LENGTH_OFFSET],
-                src[DOIP_LENGTH_OFFSET + 1],
-                src[DOIP_LENGTH_OFFSET + 2],
-                src[DOIP_LENGTH_OFFSET + 3],
-            ]) as usize;
-
-            let payload_data = &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + payload_length];
-
-            let payload: Box<dyn DoipPayload> = match payload_type {
-                PayloadType::GenericNack => {
-                    // Assuming GenericNack implements DoipPayload
-                    match GenericNack::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::VehicleIdentificationRequest => {
-                    match VehicleIdentificationRequest::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::VehicleIdentificationRequestEid => {
-                    match VehicleIdentificationRequestEid::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::VehicleIdentificationRequestVin => {
-                    match VehicleIdentificationRequestVin::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::VehicleAnnouncementMessage => {
-                    match VehicleAnnouncementMessage::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::RoutingActivationRequest => {
-                    match RoutingActivationRequest::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::RoutingActivationResponse => {
-                    match RoutingActivationResponse::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::AliveCheckRequest => match AliveCheckRequest::from_bytes(payload_data)
-                {
+            },
+            PayloadType::AliveCheckResponse => match AliveCheckResponse::from_bytes(payload_data) {
+                Ok(p) => Box::new(p),
+                Err(err) => return Err(ParseError::PayloadParseError(err)),
+            },
+            PayloadType::EntityStatusRequest => {
+                match EntityStatusRequest::from_bytes(payload_data) {
                     Ok(p) => Box::new(p),
                     Err(err) => return Err(ParseError::PayloadParseError(err)),
-                },
-                PayloadType::AliveCheckResponse => {
-                    match AliveCheckResponse::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
                 }
-                PayloadType::EntityStatusRequest => {
-                    match EntityStatusRequest::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::EntityStatusResponse => {
-                    match EntityStatusResponse::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::PowerInformationRequest => {
-                    match PowerInformationRequest::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::PowerInformationResponse => {
-                    match PowerInformationResponse::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
-                }
-                PayloadType::DiagnosticMessage => match DiagnosticMessage::from_bytes(payload_data)
-                {
+            }
+            PayloadType::EntityStatusResponse => {
+                match EntityStatusResponse::from_bytes(payload_data) {
                     Ok(p) => Box::new(p),
                     Err(err) => return Err(ParseError::PayloadParseError(err)),
-                },
-                PayloadType::DiagnosticMessageAck => {
-                    match DiagnosticMessageAck::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
                 }
-                PayloadType::DiagnosticMessageNack => {
-                    match DiagnosticMessageNack::from_bytes(payload_data) {
-                        Ok(p) => Box::new(p),
-                        Err(err) => return Err(ParseError::PayloadParseError(err)),
-                    }
+            }
+            PayloadType::PowerInformationRequest => {
+                match PowerInformationRequest::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
                 }
-            };
+            }
+            PayloadType::PowerInformationResponse => {
+                match PowerInformationResponse::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::DiagnosticMessage => match DiagnosticMessage::from_bytes(payload_data) {
+                Ok(p) => Box::new(p),
+                Err(err) => return Err(ParseError::PayloadParseError(err)),
+            },
+            PayloadType::DiagnosticMessageAck => {
+                match DiagnosticMessageAck::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+            PayloadType::DiagnosticMessageNack => {
+                match DiagnosticMessageNack::from_bytes(payload_data) {
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
+                }
+            }
+        };
 
-            // Create the DoipMessage with the payload
-            let message = DoipMessage {
-                header: DoipHeader::new(protocol_version, &*payload),
-                payload,
-            };
+        // Create the DoipMessage with the payload
+        let message = DoipMessage {
+            header: DoipHeader::new(protocol_version, &*payload),
+            payload,
+        };
 
-            messages.push(message);
-            src.drain(0..(payload_length + 8));
-        }
-
-        Ok(messages)
+        Ok(message)
     }
 }
