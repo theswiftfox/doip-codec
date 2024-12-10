@@ -1,4 +1,3 @@
-
 use super::{
     payload::payload::{DoipPayload, PayloadType},
     version::DoipVersion,
@@ -36,5 +35,25 @@ impl DoipHeader {
         bytes.extend_from_slice(&payload_length_bytes);
 
         bytes
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::doip::header::{
+        header::DoipHeader, payload::vehicle_identification_request::VehicleIdentificationRequest,
+        version::DoipVersion,
+    };
+
+    #[test]
+    fn test_to_bytes() {
+        let payload = Box::new(VehicleIdentificationRequest {});
+        let payload_ref = &*payload;
+        let header = DoipHeader::new(DoipVersion::Iso13400_2012, payload_ref);
+
+        assert_eq!(
+            header.to_bytes(),
+            vec![0x02, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]
+        );
     }
 }
