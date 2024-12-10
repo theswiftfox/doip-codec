@@ -1,4 +1,4 @@
-use super::payload::{DoipPayload, PayloadType};
+use super::payload::{DoipPayload, PayloadError, PayloadType};
 
 #[derive(Copy, Clone, Debug)]
 pub struct EntityStatusRequest {}
@@ -12,7 +12,7 @@ impl DoipPayload for EntityStatusRequest {
         vec![]
     }
 
-    fn from_bytes(_bytes: &[u8]) -> Option<Self> {
-      Some(Self {})
+    fn from_bytes(_bytes: &[u8]) -> Result<Self, PayloadError> {
+        Ok(Self {})
     }
 }

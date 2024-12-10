@@ -1,3 +1,5 @@
+use thiserror::Error;
+
 use crate::doip::{
     definitions::{
         DOIP_COMMON_EID_LEN, DOIP_COMMON_VIN_LEN, DOIP_DIAG_COMMON_SOURCE_LEN,
@@ -6,7 +8,7 @@ use crate::doip::{
     message::{action_code::ActionCode, sync_status::SyncStatus},
 };
 
-use super::payload::{DoipPayload, PayloadType};
+use super::payload::{DoipPayload, PayloadError, PayloadType};
 
 #[derive(Copy, Clone, Debug)]
 pub struct VehicleAnnouncementMessage {
@@ -39,7 +41,7 @@ impl DoipPayload for VehicleAnnouncementMessage {
         bytes
     }
 
-    fn from_bytes(bytes: &[u8]) -> Option<Self> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, PayloadError> {
         // Check that bytes have sufficient length
         let min_length = DOIP_COMMON_VIN_LEN
             + DOIP_DIAG_COMMON_SOURCE_LEN
@@ -48,23 +50,53 @@ impl DoipPayload for VehicleAnnouncementMessage {
             + DOIP_VEHICLE_ANNOUNCEMENT_ACTION_LEN;
 
         if bytes.len() < min_length {
-            return None;
+            return Err(PayloadError::VehicleAnnouncementMessageError(
+                VehicleAnnouncementMessageError::InvalidLength,
+            ));
         }
 
         let vin_offset = DOIP_COMMON_VIN_LEN;
-        let vin: [u8; DOIP_COMMON_VIN_LEN] = bytes[0..vin_offset].try_into().ok()?;
+        let vin: [u8; DOIP_COMMON_VIN_LEN] = match bytes[0..vin_offset].try_into() {
+            Ok(arr) => arr,
+            Err(_) => {
+                return Err(PayloadError::VehicleAnnouncementMessageError(
+                    VehicleAnnouncementMessageError::InvalidIndexRange,
+                ))
+            }
+        };
 
         let logical_address_offset = vin_offset + DOIP_DIAG_COMMON_SOURCE_LEN;
         let logical_address: [u8; DOIP_DIAG_COMMON_SOURCE_LEN] =
-            bytes[vin_offset..logical_address_offset].try_into().ok()?;
+            match bytes[vin_offset..logical_address_offset].try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    return Err(PayloadError::VehicleAnnouncementMessageError(
+                        VehicleAnnouncementMessageError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let eid_offset = logical_address_offset + DOIP_COMMON_EID_LEN;
         let eid: [u8; DOIP_COMMON_EID_LEN] =
-            bytes[logical_address_offset..eid_offset].try_into().ok()?;
+            match bytes[logical_address_offset..eid_offset].try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    return Err(PayloadError::VehicleAnnouncementMessageError(
+                        VehicleAnnouncementMessageError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let gid_offset = eid_offset + DOIP_VEHICLE_ANNOUNCEMENT_GID_LEN;
         let gid: [u8; DOIP_VEHICLE_ANNOUNCEMENT_GID_LEN] =
-            bytes[eid_offset..gid_offset].try_into().ok()?;
+            match bytes[eid_offset..gid_offset].try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    return Err(PayloadError::VehicleAnnouncementMessageError(
+                        VehicleAnnouncementMessageError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let further_action_offset = gid_offset;
         let vin_gid_sync_offset = further_action_offset + DOIP_VEHICLE_ANNOUNCEMENT_ACTION_LEN;
@@ -87,7 +119,11 @@ impl DoipPayload for VehicleAnnouncementMessage {
             0x0E => ActionCode::ReservedByIso13400_0E,
             0x0F => ActionCode::ReservedByIso13400_0F,
             0x10 => ActionCode::RoutingActivationRequired,
-            _ => return None,
+            _ => {
+                return Err(PayloadError::VehicleAnnouncementMessageError(
+                    VehicleAnnouncementMessageError::InvalidActionCode,
+                ))
+            }
         };
 
         let vin_gid_sync: Option<SyncStatus> = match bytes.get(vin_gid_sync_offset) {
@@ -111,7 +147,7 @@ impl DoipPayload for VehicleAnnouncementMessage {
             _ => None,
         };
 
-        Some(Self {
+        Ok(Self {
             vin,
             logical_address,
             eid,
@@ -120,4 +156,14 @@ impl DoipPayload for VehicleAnnouncementMessage {
             vin_gid_sync,
         })
     }
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum VehicleAnnouncementMessageError {
+    #[error("length of bytes is too short")]
+    InvalidLength,
+    #[error("invalid index range supplied")]
+    InvalidIndexRange,
+    #[error("action code not supported")]
+    InvalidActionCode,
 }

@@ -1,9 +1,8 @@
 use crate::{
     doip::{
         definitions::{
-            DOIP_HEADER_LEN, DOIP_INV_VERSION_OFFSET,
-            DOIP_LENGTH_OFFSET, DOIP_TYPE_LEN, DOIP_TYPE_OFFSET,
-            DOIP_VERSION_OFFSET,
+            DOIP_HEADER_LEN, DOIP_INV_VERSION_OFFSET, DOIP_LENGTH_OFFSET, DOIP_TYPE_LEN,
+            DOIP_TYPE_OFFSET, DOIP_VERSION_OFFSET,
         },
         header::{
             header::DoipHeader,
@@ -28,7 +27,8 @@ use crate::{
             },
             version::DoipVersion,
         },
-    }, error::ParseError,
+    },
+    error::ParseError,
 };
 
 #[derive(Debug)]
@@ -83,8 +83,8 @@ impl DoipMessage {
             let payload_type = match PayloadType::from_bytes(
                 &src[DOIP_TYPE_OFFSET..(DOIP_TYPE_OFFSET + DOIP_TYPE_LEN)],
             ) {
-                Some(p) => p,
-                None => return Err(ParseError::PayloadNotRecognised),
+                Ok(p) => p,
+                Err(err) => return Err(ParseError::PayloadParseError(err)),
             };
 
             let payload_length = u32::from_be_bytes([
@@ -100,96 +100,96 @@ impl DoipMessage {
                 PayloadType::GenericNack => {
                     // Assuming GenericNack implements DoipPayload
                     match GenericNack::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::VehicleIdentificationRequest => {
                     match VehicleIdentificationRequest::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::VehicleIdentificationRequestEid => {
                     match VehicleIdentificationRequestEid::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::VehicleIdentificationRequestVin => {
                     match VehicleIdentificationRequestVin::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::VehicleAnnouncementMessage => {
                     match VehicleAnnouncementMessage::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::RoutingActivationRequest => {
                     match RoutingActivationRequest::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::RoutingActivationResponse => {
                     match RoutingActivationResponse::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::AliveCheckRequest => match AliveCheckRequest::from_bytes(payload_data)
                 {
-                    Some(p) => Box::new(p),
-                    None => return Err(ParseError::PayloadNotRecognised),
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
                 },
                 PayloadType::AliveCheckResponse => {
                     match AliveCheckResponse::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::EntityStatusRequest => {
                     match EntityStatusRequest::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::EntityStatusResponse => {
                     match EntityStatusResponse::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::PowerInformationRequest => {
                     match PowerInformationRequest::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::PowerInformationResponse => {
                     match PowerInformationResponse::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::DiagnosticMessage => match DiagnosticMessage::from_bytes(payload_data)
                 {
-                    Some(p) => Box::new(p),
-                    None => return Err(ParseError::PayloadNotRecognised),
+                    Ok(p) => Box::new(p),
+                    Err(err) => return Err(ParseError::PayloadParseError(err)),
                 },
                 PayloadType::DiagnosticMessageAck => {
                     match DiagnosticMessageAck::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
                 PayloadType::DiagnosticMessageNack => {
                     match DiagnosticMessageNack::from_bytes(payload_data) {
-                        Some(p) => Box::new(p),
-                        None => return Err(ParseError::PayloadNotRecognised),
+                        Ok(p) => Box::new(p),
+                        Err(err) => return Err(ParseError::PayloadParseError(err)),
                     }
                 }
             };

@@ -1,6 +1,13 @@
-use crate::doip::{definitions::{DOIP_DIAG_COMMON_SOURCE_LEN, DOIP_DIAG_COMMON_TARGET_LEN, DOIP_DIAG_MESSAGE_NACK_CODE_LEN}, message::diagnostic_nack::DiagnosticNackNode};
+use thiserror::Error;
 
-use super::payload::{DoipPayload, PayloadType};
+use crate::doip::{
+    definitions::{
+        DOIP_DIAG_COMMON_SOURCE_LEN, DOIP_DIAG_COMMON_TARGET_LEN, DOIP_DIAG_MESSAGE_NACK_CODE_LEN,
+    },
+    message::diagnostic_nack::DiagnosticNackNode,
+};
+
+use super::payload::{DoipPayload, PayloadError, PayloadType};
 
 #[derive(Copy, Clone, Debug)]
 pub struct DiagnosticMessageNack {
@@ -24,25 +31,39 @@ impl DoipPayload for DiagnosticMessageNack {
         bytes
     }
 
-    fn from_bytes(bytes: &[u8]) -> Option<Self> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, PayloadError> {
         // Check that bytes have sufficient length
         let min_length = DOIP_DIAG_COMMON_SOURCE_LEN
             + DOIP_DIAG_COMMON_TARGET_LEN
             + DOIP_DIAG_MESSAGE_NACK_CODE_LEN;
 
         if bytes.len() < min_length {
-            return None;
+            return Err(PayloadError::DiagnosticMessageNackParseError(
+                DiagnosticMessageNackParseError::InvalidLength,
+            ));
         }
 
         let source_address_offset = DOIP_DIAG_COMMON_SOURCE_LEN;
         let source_address: [u8; DOIP_DIAG_COMMON_SOURCE_LEN] =
-            bytes[0..source_address_offset].try_into().ok()?;
+            match bytes[0..source_address_offset].try_into() {
+                Ok(array) => array,
+                Err(_) => {
+                    return Err(PayloadError::DiagnosticMessageNackParseError(
+                        DiagnosticMessageNackParseError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let target_address_offset = source_address_offset + DOIP_DIAG_COMMON_TARGET_LEN;
-        let target_address: [u8; DOIP_DIAG_COMMON_TARGET_LEN] = bytes
-            [source_address_offset..target_address_offset]
-            .try_into()
-            .ok()?;
+        let target_address: [u8; DOIP_DIAG_COMMON_TARGET_LEN] =
+            match bytes[source_address_offset..target_address_offset].try_into() {
+                Ok(array) => array,
+                Err(_) => {
+                    return Err(PayloadError::DiagnosticMessageNackParseError(
+                        DiagnosticMessageNackParseError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let nack_code_offset = target_address_offset;
         let nack_code = match &bytes[nack_code_offset] {
@@ -55,13 +76,27 @@ impl DoipPayload for DiagnosticMessageNack {
             0x06 => DiagnosticNackNode::TargetUnreachable,
             0x07 => DiagnosticNackNode::UnknownNetwork,
             0x08 => DiagnosticNackNode::TransportProtocolError,
-            _ => return None,
+            _ => {
+                return Err(PayloadError::DiagnosticMessageNackParseError(
+                    DiagnosticMessageNackParseError::InvalidNackCode,
+                ))
+            }
         };
 
-        Some(Self {
+        Ok(Self {
             source_address,
             target_address,
             nack_code,
         })
     }
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum DiagnosticMessageNackParseError {
+    #[error("length of bytes is too short")]
+    InvalidLength,
+    #[error("invalid index range supplied")]
+    InvalidIndexRange,
+    #[error("invalid negative acknowledgement code")]
+    InvalidNackCode,
 }

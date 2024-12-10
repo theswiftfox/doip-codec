@@ -1,6 +1,8 @@
+use thiserror::Error;
+
 use crate::doip::{definitions::DOIP_POWER_MODE_LEN, message::power_mode::PowerMode};
 
-use super::payload::{DoipPayload, PayloadType};
+use super::payload::{DoipPayload, PayloadError, PayloadType};
 
 #[derive(Copy, Clone, Debug)]
 pub struct PowerInformationResponse {
@@ -20,12 +22,14 @@ impl DoipPayload for PowerInformationResponse {
         bytes
     }
 
-    fn from_bytes(bytes: &[u8]) -> Option<Self> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, PayloadError> {
         // Check that bytes have sufficient length
         let min_length = DOIP_POWER_MODE_LEN;
 
         if bytes.len() < min_length {
-            return None;
+            return Err(PayloadError::PowerInformationResponseError(
+                PowerInformationResponseError::InvalidLength,
+            ));
         }
 
         let power_mode_offset = DOIP_POWER_MODE_LEN;
@@ -33,9 +37,23 @@ impl DoipPayload for PowerInformationResponse {
             0x00 => PowerMode::NotReady,
             0x01 => PowerMode::Ready,
             0x02 => PowerMode::NotSupported,
-            _ => return None,
+            _ => {
+                return Err(PayloadError::PowerInformationResponseError(
+                    PowerInformationResponseError::InvalidPowerMode,
+                ))
+            }
         };
 
-        Some(Self { power_mode })
+        Ok(Self { power_mode })
     }
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum PowerInformationResponseError {
+    #[error("length of bytes is too short")]
+    InvalidLength,
+    #[error("invalid index range supplied")]
+    InvalidIndexRange,
+    #[error("powermode not supported")]
+    InvalidPowerMode,
 }

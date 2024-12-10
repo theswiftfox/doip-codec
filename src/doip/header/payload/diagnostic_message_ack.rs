@@ -1,3 +1,5 @@
+use thiserror::Error;
+
 use crate::doip::{
     definitions::{
         DOIP_DIAG_COMMON_SOURCE_LEN, DOIP_DIAG_COMMON_TARGET_LEN, DOIP_DIAG_MESSAGE_ACK_CODE_LEN,
@@ -5,7 +7,7 @@ use crate::doip::{
     message::diagnostic_ack::DiagnosticAckCode,
 };
 
-use super::payload::{DoipPayload, PayloadType};
+use super::payload::{DoipPayload, PayloadError, PayloadType};
 
 #[derive(Copy, Clone, Debug)]
 pub struct DiagnosticMessageAck {
@@ -29,34 +31,62 @@ impl DoipPayload for DiagnosticMessageAck {
         bytes
     }
 
-    fn from_bytes(bytes: &[u8]) -> Option<Self> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, PayloadError> {
         // Check that bytes have sufficient length
         let min_length = DOIP_DIAG_COMMON_SOURCE_LEN + DOIP_DIAG_COMMON_TARGET_LEN;
 
         if bytes.len() < min_length {
-            return None;
+            return Err(PayloadError::DiagnosticMessageAckError(
+                DiagnosticMessageAckError::InvalidLength,
+            ));
         }
 
         let source_address_offset = DOIP_DIAG_COMMON_SOURCE_LEN;
         let source_address: [u8; DOIP_DIAG_COMMON_SOURCE_LEN] =
-            bytes[0..source_address_offset].try_into().ok()?;
+            match bytes[0..source_address_offset].try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    return Err(PayloadError::DiagnosticMessageAckError(
+                        DiagnosticMessageAckError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let target_address_offset = source_address_offset + DOIP_DIAG_COMMON_TARGET_LEN;
-        let target_address: [u8; DOIP_DIAG_COMMON_TARGET_LEN] = bytes
-            [source_address_offset..target_address_offset]
-            .try_into()
-            .ok()?;
+        let target_address: [u8; DOIP_DIAG_COMMON_TARGET_LEN] =
+            match bytes[source_address_offset..target_address_offset].try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    return Err(PayloadError::DiagnosticMessageAckError(
+                        DiagnosticMessageAckError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let _ack_code_offset = target_address_offset + DOIP_DIAG_MESSAGE_ACK_CODE_LEN;
         let ack_code = match &bytes[target_address_offset] {
             0x00 => DiagnosticAckCode::Acknowledged,
-            _ => return None,
+            _ => {
+                return Err(PayloadError::DiagnosticMessageAckError(
+                    DiagnosticMessageAckError::InvalidAckCode,
+                ))
+            }
         };
 
-        Some(Self {
+        Ok(Self {
             source_address,
             target_address,
             ack_code,
         })
     }
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum DiagnosticMessageAckError {
+    #[error("length of bytes is too short")]
+    InvalidLength,
+    #[error("invalid index range supplied")]
+    InvalidIndexRange,
+    #[error("invalid acknowledgement code")]
+    InvalidAckCode,
 }

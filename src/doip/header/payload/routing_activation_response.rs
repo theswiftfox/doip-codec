@@ -1,13 +1,15 @@
+use thiserror::Error;
+
 use crate::doip::{
     definitions::{
-        DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN,
-        DOIP_ROUTING_ACTIVATION_RES_CODE_LEN, DOIP_ROUTING_ACTIVATION_RES_ENTITY_LEN,
-        DOIP_ROUTING_ACTIVATION_RES_ISO_LEN, DOIP_ROUTING_ACTIVATION_RES_TESTER_LEN,
+        DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN, DOIP_ROUTING_ACTIVATION_RES_CODE_LEN,
+        DOIP_ROUTING_ACTIVATION_RES_ENTITY_LEN, DOIP_ROUTING_ACTIVATION_RES_ISO_LEN,
+        DOIP_ROUTING_ACTIVATION_RES_TESTER_LEN,
     },
     message::activation_code::ActivationCode,
 };
 
-use super::payload::{DoipPayload, PayloadType};
+use super::payload::{DoipPayload, PayloadError, PayloadType};
 
 #[derive(Copy, Clone, Debug)]
 pub struct RoutingActivationResponse {
@@ -33,7 +35,7 @@ impl DoipPayload for RoutingActivationResponse {
         bytes
     }
 
-    fn from_bytes(bytes: &[u8]) -> Option<Self> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, PayloadError> {
         // Check that bytes have sufficient length
         let min_length = DOIP_ROUTING_ACTIVATION_RES_TESTER_LEN
             + DOIP_ROUTING_ACTIVATION_RES_ENTITY_LEN
@@ -41,18 +43,32 @@ impl DoipPayload for RoutingActivationResponse {
             + DOIP_ROUTING_ACTIVATION_RES_ISO_LEN;
 
         if bytes.len() < min_length {
-            return None;
+            return Err(PayloadError::RoutingActivationResponseError(
+                RoutingActivationResponseError::InvalidLength,
+            ));
         }
 
         let logical_address_offset = DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN;
         let logical_address: [u8; DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN] =
-            bytes[0..logical_address_offset].try_into().ok()?;
+            match bytes[0..logical_address_offset].try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    return Err(PayloadError::RoutingActivationResponseError(
+                        RoutingActivationResponseError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let source_address_offset = logical_address_offset + DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN;
-        let source_address: [u8; DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN] = bytes
-            [logical_address_offset..source_address_offset]
-            .try_into()
-            .ok()?;
+        let source_address: [u8; DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN] =
+            match bytes[logical_address_offset..source_address_offset].try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    return Err(PayloadError::RoutingActivationResponseError(
+                        RoutingActivationResponseError::InvalidIndexRange,
+                    ))
+                }
+            };
 
         let activation_code_offset = source_address_offset;
 
@@ -75,23 +91,44 @@ impl DoipPayload for RoutingActivationResponse {
             0x0F => ActivationCode::ReservedByIso13400_0F,
             0x10 => ActivationCode::SuccessfullyActivated,
             0x11 => ActivationCode::ActivatedConfirmationRequired,
-            _ => return None,
+            _ => {
+                return Err(PayloadError::RoutingActivationResponseError(
+                    RoutingActivationResponseError::InvalidActivationCode,
+                ))
+            }
         };
 
         let buffer_offset = activation_code_offset
             + DOIP_ROUTING_ACTIVATION_RES_CODE_LEN
             + DOIP_ROUTING_ACTIVATION_RES_ISO_LEN;
 
-        let buffer: [u8; DOIP_ROUTING_ACTIVATION_RES_ISO_LEN] = bytes
+        let buffer: [u8; DOIP_ROUTING_ACTIVATION_RES_ISO_LEN] = match bytes
             [(activation_code_offset + DOIP_ROUTING_ACTIVATION_RES_CODE_LEN)..buffer_offset]
             .try_into()
-            .ok()?;
+        {
+            Ok(arr) => arr,
+            Err(_) => {
+                return Err(PayloadError::RoutingActivationResponseError(
+                    RoutingActivationResponseError::InvalidIndexRange,
+                ))
+            }
+        };
 
-        Some(Self {
+        Ok(Self {
             logical_address,
             source_address,
             activation_code,
             buffer,
         })
     }
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum RoutingActivationResponseError {
+    #[error("length of bytes is too short")]
+    InvalidLength,
+    #[error("invalid index range supplied")]
+    InvalidIndexRange,
+    #[error("activation code not supported")]
+    InvalidActivationCode,
 }
