@@ -5,6 +5,7 @@ mod error;
 
 #[derive(Debug)]
 pub struct DoipCodec;
+
 #[cfg(test)]
 mod tests {
     use tokio_util::codec::{FramedRead, FramedWrite};
@@ -44,8 +45,6 @@ mod tests {
 
         let buffer = writer.get_ref();
 
-        dbg!(&buffer);
-
         assert_eq!(
             buffer.as_slice(),
             [
@@ -57,7 +56,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_framed_read() {
-        use tokio_stream::StreamExt;
+        use futures::StreamExt;
 
         let bytes = vec![
             0x02, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x02, 0xfd, 0x00, 0x01, 0x00, 0x00,

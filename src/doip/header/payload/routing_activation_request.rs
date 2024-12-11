@@ -164,7 +164,6 @@ mod tests {
     fn test_from_bytes_invalid_activation_type() {
         let request = vec![0x01, 0x02, 0x07, 0x01, 0x02, 0x03, 0x04];
         let from_bytes = RoutingActivationRequest::from_bytes(&request);
-        dbg!(&from_bytes);
 
         assert!(
             from_bytes.is_err(),

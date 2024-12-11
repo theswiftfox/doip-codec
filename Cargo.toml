@@ -14,5 +14,4 @@ categories = ["simulation", "parser-implementations", "network-programming", "en
 futures = "0.3.31"
 thiserror = "2.0.4"
 tokio = { version = "1.42.0", features = ["full"] }
-tokio-stream = "0.1.17"
 tokio-util = {version = "0.7.13", features = ["full"]}

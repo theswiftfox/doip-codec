@@ -71,7 +71,6 @@ impl DoipPayload for RoutingActivationResponse {
             };
 
         let activation_code_offset = source_address_offset;
-        dbg!(&activation_code_offset);
 
         let activation_code = match &bytes[activation_code_offset] {
             0x00 => ActivationCode::DeniedUnknownSourceAddress,
@@ -205,8 +204,6 @@ mod tests {
     fn test_from_bytes_invalid_ack_code() {
         let request = vec![0x01, 0x02, 0x03, 0x04, 0x12, 0x01, 0x02, 0x03, 0x04];
         let from_bytes = RoutingActivationResponse::from_bytes(&request);
-
-        dbg!(&from_bytes);
 
         assert!(
             from_bytes.is_err(),
