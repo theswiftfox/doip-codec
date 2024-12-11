@@ -12,6 +12,10 @@ pub enum ParseError {
     InvalidProtocolVersion,
     #[error("failed protocol check")]
     FailedProtocolCheck,
+    #[error("index failure")]
+    IndexFailure,
+    #[error("incomplete payload")]
+    IncompletePayload,
     #[error("payload parse error")]
     PayloadParseError(#[from] PayloadError),
 }
@@ -22,4 +26,10 @@ pub enum DecodeError {
     IoError(#[from] io::Error),
     #[error("Underlying Parse Error: {0}")]
     ParseError(#[from] ParseError),
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum EncodeError {
+    #[error("Underlying I/O Error: {0}")]
+    IoError(#[from] io::Error),
 }
