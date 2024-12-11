@@ -6,7 +6,7 @@ edition = "2021"
 description = "Diagnostics over Internet Protocol codec for client-server communication."
 readme="README.md"
 repository = "https://github.com/samp-reston/doip-codec"
-license = "LICENSE.txt"
+license-file = "LICENSE"
 keywords = ["doip", "diagnostics", "vehicle", "codec"]
 categories = ["simulation", "parser-implementations", "network-programming", "encoding"]
 
