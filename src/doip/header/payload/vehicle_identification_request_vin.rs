@@ -55,10 +55,7 @@ mod tests {
     use crate::doip::{
         definitions::DOIP_COMMON_VIN_LEN,
         header::payload::{
-            payload::{DoipPayload, PayloadError, PayloadType},
-            vehicle_identification_request_eid::{
-                VehicleIdentificationRequestEid, VehicleIdentificationRequestEidError,
-            }, vehicle_identification_request_vin::{VehicleIdentificationRequestVin, VehicleIdentificationRequestVinError},
+            payload::{DoipPayload, PayloadError, PayloadType}, vehicle_identification_request_vin::{VehicleIdentificationRequestVin, VehicleIdentificationRequestVinError},
         },
     };
 

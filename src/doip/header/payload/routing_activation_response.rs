@@ -138,7 +138,6 @@ pub enum RoutingActivationResponseError {
 mod tests {
     use crate::doip::{
         header::payload::{
-            diagnostic_message_ack::{DiagnosticMessageAck, DiagnosticMessageAckError},
             payload::{DoipPayload, PayloadError, PayloadType},
             routing_activation_response::{
                 RoutingActivationResponse, RoutingActivationResponseError,

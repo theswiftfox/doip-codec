@@ -20,7 +20,6 @@ impl DoipPayload for VehicleIdentificationRequest {
 #[cfg(test)]
 mod tests {
     use crate::doip::header::payload::{
-        entity_status_request::EntityStatusRequest,
         payload::{DoipPayload, PayloadType}, vehicle_identification_request::VehicleIdentificationRequest,
     };
 
