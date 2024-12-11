@@ -13,13 +13,11 @@ use crate::doip::definitions::{
 };
 
 use super::{
-    alive_check_response::AliveCheckResponseParseError,
-    diagnostic_message::DiagnosticMessageError,
+    alive_check_response::AliveCheckResponseParseError, diagnostic_message::DiagnosticMessageError,
     diagnostic_message_ack::DiagnosticMessageAckError,
     diagnostic_message_nack::DiagnosticMessageNackParseError,
-    entity_status_response::EntityStatusResponseError,
-    generic_nack::GenericNackError,
-    power_information_response::{PowerInformationResponse, PowerInformationResponseError},
+    entity_status_response::EntityStatusResponseError, generic_nack::GenericNackError,
+    power_information_response::PowerInformationResponseError,
     routing_activation_request::RoutingActivationRequestError,
     routing_activation_response::RoutingActivationResponseError,
     vehicle_announcement_message::VehicleAnnouncementMessageError,

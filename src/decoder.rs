@@ -8,7 +8,7 @@ impl tokio_util::codec::Decoder for DoipCodec {
     type Error = DecodeError;
 
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        if src.len() == 0 {
+        if src.is_empty() {
             return Ok(None);
         };
         // Check that the length is not too large to avoid a denial of

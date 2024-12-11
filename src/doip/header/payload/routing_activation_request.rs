@@ -56,7 +56,7 @@ impl DoipPayload for RoutingActivationRequest {
             };
 
         let activation_type_offset =
-            source_address_offset + 0;
+            source_address_offset;
 
         let activation_type = match &bytes[activation_type_offset] {
             0x00 => ActivationType::Default,

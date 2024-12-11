@@ -17,7 +17,7 @@ pub enum ParseError {
     #[error("incomplete payload")]
     IncompletePayload,
     #[error("payload parse error")]
-    PayloadParseError(#[from] PayloadError),
+    PayloadParse(#[from] PayloadError),
 }
 
 #[derive(thiserror::Error, Debug)]
