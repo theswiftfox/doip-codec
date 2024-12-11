@@ -1,7 +1,14 @@
 [package]
 name = "doip-codec"
-version = "0.1.0"
+version = "1.0.0"
+authors = ["Samuel Preston <samp.reston@outlook.com>"]
 edition = "2021"
+description = "Diagnostics over Internet Protocol codec for client-server communication."
+readme="README.md"
+repository = "https://github.com/samp-reston/doip-codec"
+license = "LICENSE"
+keywords = ["doip", "diagnostics", "vehicle", "codec"]
+categories = ["simulation", "parser-implementations", "network-programming", "encoding"]
 
 [dependencies]
 futures = "0.3.31"
