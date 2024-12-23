@@ -2,7 +2,6 @@ mod decoder;
 pub mod doip;
 mod encoder;
 pub mod error;
-mod test;
 
 #[derive(Debug)]
 pub struct DoipCodec;
