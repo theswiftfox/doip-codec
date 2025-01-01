@@ -129,7 +129,6 @@ impl DoipMessage {
 
         let payload: Box<dyn DoipPayload> = match payload_type {
             PayloadType::GenericNack => {
-                // Assuming GenericNack implements DoipPayload
                 match GenericNack::from_bytes(payload_data_bytes) {
                     Ok(p) => Box::new(p),
                     Err(err) => return Err(ParseError::PayloadParse(err)),
@@ -227,7 +226,6 @@ impl DoipMessage {
             }
         };
 
-        // Create the DoipMessage with the payload
         let message = DoipMessage {
             header: DoipHeader::new(protocol_version, &*payload),
             payload,

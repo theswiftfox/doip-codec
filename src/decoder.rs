@@ -11,8 +11,6 @@ impl tokio_util::codec::Decoder for DoipCodec {
         if src.is_empty() {
             return Ok(None);
         };
-        // Check that the length is not too large to avoid a denial of
-        // service attack where the server runs out of memory.
         if src.len() > MAX {
             return Err(DecodeError::IoError(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
@@ -20,10 +18,7 @@ impl tokio_util::codec::Decoder for DoipCodec {
             )));
         }
 
-        // Use advance to modify src such that it no longer contains
-        // this frame.
         let data = src[..src.len()].to_vec();
-        // src.advance(src.len());
 
         match DoipMessage::parse_from_bytes(data) {
             Ok(msg) => {

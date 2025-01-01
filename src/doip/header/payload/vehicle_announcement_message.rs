@@ -35,7 +35,7 @@ impl DoipPayload for VehicleAnnouncementMessage {
         bytes.extend_from_slice(&[self.further_action as u8]);
 
         if let Some(sync_status) = self.vin_gid_sync {
-            bytes.push(sync_status as u8); // Assuming `SyncStatus` can be cast to `u8`
+            bytes.push(sync_status as u8);
         }
 
         bytes
