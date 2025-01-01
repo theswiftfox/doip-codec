@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-// Node Type//
+// Node Type
 pub enum NodeType {
     DoipGateway = 0x00,
     DoipNode = 0x01,

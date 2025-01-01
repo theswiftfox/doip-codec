@@ -27,6 +27,7 @@ mod tests {
     #[test]
     fn test_payload_type() {
         let request = AliveCheckRequest {};
+
         assert_eq!(request.payload_type(), PayloadType::AliveCheckRequest);
     }
 
