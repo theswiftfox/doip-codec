@@ -1,5 +1,7 @@
-use crate::{doip::message::message::DoipMessage, error::DecodeError, DoipCodec};
+use doip_definitions::message::DoipMessage;
 use tokio_util::bytes::{Buf, BytesMut};
+
+use crate::{error::DecodeError, DoipCodec};
 
 pub const MAX: usize = 8 * 1024 * 1024;
 
@@ -32,12 +34,10 @@ impl tokio_util::codec::Decoder for DoipCodec {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        doip::{
-            header::{header::DoipHeader, payload::payload::PayloadType, version::DoipVersion},
-            message::message::DoipMessage,
-        },
-        DoipCodec,
+    use crate::DoipCodec;
+    use doip_definitions::{
+        header::{DoipHeader, DoipVersion, PayloadType},
+        message::DoipMessage,
     };
     use tokio_util::{bytes::BytesMut, codec::Decoder};
 

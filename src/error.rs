@@ -1,24 +1,6 @@
 use std::io;
 
-use thiserror::Error;
-
-use crate::doip::header::payload::payload::PayloadError;
-
-#[derive(Error, Debug, PartialEq)]
-pub enum ParseError {
-    #[error("empty input")]
-    EmptyInput,
-    #[error("invalid protocol version")]
-    InvalidProtocolVersion,
-    #[error("failed protocol check")]
-    FailedProtocolCheck,
-    #[error("index failure")]
-    IndexFailure,
-    #[error("incomplete payload")]
-    IncompletePayload,
-    #[error("payload parse error")]
-    PayloadParse(#[from] PayloadError),
-}
+use doip_definitions::error::ParseError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum DecodeError {

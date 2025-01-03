@@ -1,5 +1,4 @@
 mod decoder;
-pub mod doip;
 mod encoder;
 pub mod error;
 
@@ -8,18 +7,10 @@ pub struct DoipCodec;
 
 #[cfg(test)]
 mod tests {
+    use doip_definitions::{header::DoipVersion, message::{DoipMessage, VehicleIdentificationRequest}};
     use tokio_util::codec::{FramedRead, FramedWrite};
 
-    use crate::{
-        doip::{
-            header::{
-                payload::vehicle_identification_request::VehicleIdentificationRequest,
-                version::DoipVersion,
-            },
-            message::message::DoipMessage,
-        },
-        DoipCodec,
-    };
+    use crate::DoipCodec;
 
     #[tokio::test]
     async fn test_framed_write() {

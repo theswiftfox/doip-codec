@@ -1,4 +1,6 @@
-use crate::{doip::message::message::DoipMessage, error::EncodeError, DoipCodec};
+use doip_definitions::message::DoipMessage;
+
+use crate::{error::EncodeError, DoipCodec};
 
 impl tokio_util::codec::Encoder<DoipMessage> for DoipCodec {
     type Error = EncodeError;
@@ -16,17 +18,13 @@ impl tokio_util::codec::Encoder<DoipMessage> for DoipCodec {
         Ok(())
     }
 }
+
 #[cfg(test)]
 mod tests {
-    use crate::{
-        doip::{
-            header::{
-                payload::vehicle_identification_request::VehicleIdentificationRequest,
-                version::DoipVersion,
-            },
-            message::message::DoipMessage,
-        },
-        DoipCodec,
+    use crate::DoipCodec;
+    use doip_definitions::{
+        header::DoipVersion,
+        message::{DoipMessage, VehicleIdentificationRequest},
     };
     use tokio_util::{bytes::BytesMut, codec::Encoder};
 
