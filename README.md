@@ -1,6 +1,6 @@
-# Doip Codec
+# Diagnostics over Internet Protocol (DoIP) Codec
 
-The `Doip Codec` crate provides a `DoipCodec` implementation for encoding and decoding Diagnostics Over Internet Protocol (DoIP) messages. It is designed to integrate seamlessly with the Tokio ecosystem, leveraging `tokio-util`'s `Framed` for efficient stream-based reading and writing of DoIP messages.
+The `doip-codec` crate provides a `Encoder` and `Decoder` implementation for encoding and decoding Diagnostics Over Internet Protocol (DoIP) messages. It is designed to integrate seamlessly with the Tokio ecosystem, leveraging `tokio-util`'s `Framed` for efficient stream-based reading and writing of DoIP messages.
 
 ## Features
 
@@ -29,41 +29,37 @@ use doip_codec::DoipCodec;
 Here's a simple example to get started with `DoipCodec`:
 
 ```rust
-use doip::{
-    header::{
-        payload::vehicle_identification_request::VehicleIdentificationRequest, version::DoipVersion,
-    },
-    message::message::DoipMessage,
-};
 use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
 use tokio_util::codec::Framed;
-
+use doip_definitions::{
+    header::DoipVersion,
+    message::{DoipMessage, VehicleIdentificationRequest},
+};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Connect to a DoIP server
-    let stream = TcpStream::connect("127.0.0.1:13400").await?;
+  // Connect to a DoIP server
+  let stream = TcpStream::connect("127.0.0.1:13400").await?;
 
-    // Wrap the stream with the DoipCodec
-    let mut framed = Framed::new(stream, DoipCodec);
+  // Wrap the stream with the DoipCodec
+  let mut framed = Framed::new(stream, DoipCodec);
 
-    // Send a DoIP message
-    let request = DoipMessage::new(
-        DoipVersion::Iso13400_2012,
-        Box::new(VehicleIdentificationRequest {}),
-    ); // Example payload
+  // Send a DoIP message
+  let request = DoipMessage::new(
+      DoipVersion::Iso13400_2012,
+      Box::new(VehicleIdentificationRequest {}),
+  ); // Example payload
 
-    framed.send(request).await?;
+  framed.send(request).await?;
 
-    // Receive a DoIP message
-    if let Some(response) = framed.next().await {
-        match response {
-            Ok(msg) => println!("Received message: {:?}", msg),
-            Err(e) => eprintln!("Failed to decode message: {}", e),
-        }
-    }
-
-    Ok(())
+  // Receive a DoIP message
+  if let Some(response) = framed.next().await {
+      match response {
+          Ok(msg) => println!("Received message: {:?}", msg),
+          Err(e) => eprintln!("Failed to decode message: {}", e),
+      }
+  }
+  Ok(())
 }
 ```
 
@@ -73,7 +69,7 @@ Comprehensive API documentation is available on [docs.rs](https://docs.rs/doip-c
 
 ## Why DoIP?
 
-Diagnostics Over Internet Protocol (DoIP) is a modern diagnostic communication protocol that leverages IP-based networks for vehicle diagnostics, making it a critical component in automotive software. The `Doip Codec` crate simplifies the implementation of DoIP messaging for Rust developers.
+Diagnostics Over Internet Protocol (DoIP) is a modern diagnostic communication protocol that leverages IP-based networks for vehicle diagnostics, making it a critical component in automotive software. The `doip-codec` crate simplifies the implementation of DoIP messaging for Rust developers.
 
 ## Contributing
 
