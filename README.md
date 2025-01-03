@@ -36,6 +36,8 @@ use doip_definitions::{
     header::DoipVersion,
     message::{DoipMessage, VehicleIdentificationRequest},
 };
+use doip_codec::DoipCodec;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   // Connect to a DoIP server
@@ -59,6 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
           Err(e) => eprintln!("Failed to decode message: {}", e),
       }
   }
+
   Ok(())
 }
 ```
