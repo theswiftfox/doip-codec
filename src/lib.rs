@@ -6,7 +6,7 @@
 //! DoIP Messages defined in the `doip-definitions` crate.
 //!
 //! ## Example Usage
-//! ```rust
+//! ```no_run
 //! use futures::{SinkExt, StreamExt};
 //! use tokio::net::TcpStream;
 //! use tokio_util::codec::Framed;
@@ -14,6 +14,7 @@
 //!     header::DoipVersion,
 //!     message::{DoipMessage, VehicleIdentificationRequest},
 //! };
+//! use doip_codec::DoipCodec;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
