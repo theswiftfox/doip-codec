@@ -16,12 +16,12 @@ categories = [
 ]
 
 [dependencies]
-doip-definitions = "1.0.0"
-thiserror = "2.0.9"
+doip-definitions = "2.0.1"
+thiserror = "2.0.11"
 tokio-util = { version = "0.7.13", features = ["codec"] }
+tokio = { version = "1.43.0", features = ["rt-multi-thread", "macros", "net"] }
 
 [dev-dependencies]
-tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros", "net"] }
 futures = "0.3.31"
 
 [profile.release]

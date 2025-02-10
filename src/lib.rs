@@ -1,5 +1,7 @@
+#![no_std]
+#![warn(clippy::pedantic)]
 #![warn(missing_docs)]
-
+#![warn(missing_debug_implementations)]
 //! # Diagnostics over Internet Protocol Codec Crate
 //!
 //! The purpose of this crate is to provide an easy way to encode and decode
@@ -46,8 +48,12 @@
 //!
 
 mod decoder;
+mod doip_message;
 mod encoder;
 mod error;
+use tokio::io::{AsyncRead, AsyncWrite};
+use tokio_util::{bytes::BytesMut, codec::Framed};
+
 pub use crate::error::*;
 
 /// A simple Decoder and Encoder implementation for Diagnostics over Internet
@@ -57,6 +63,26 @@ pub use crate::error::*;
 /// utilised during.
 #[derive(Debug)]
 pub struct DoipCodec;
+
+pub trait Decoder {
+    type Item;
+    type Error: From<DecodeError>;
+
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error>;
+
+    fn framed<T: AsyncRead + AsyncWrite + Sized>(self, io: T) -> Framed<T, Self>
+    where
+        Self: Sized,
+    {
+        Framed::new(io, self)
+    }
+}
+
+pub trait Encoder<Item> {
+    type Error: From<EncodeError>;
+
+    fn encode(&mut self, item: Item, dst: &mut BytesMut) -> Result<(), Self::Error>;
+}
 
 #[cfg(test)]
 mod tests {
