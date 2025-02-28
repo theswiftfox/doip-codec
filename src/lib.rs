@@ -51,7 +51,6 @@ mod decoder;
 mod doip_message;
 mod encoder;
 mod error;
-use doip_definitions::DoipMessage;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_util::{bytes::BytesMut, codec::Framed};
 
@@ -66,13 +65,21 @@ pub use crate::error::*;
 pub struct DoipCodec;
 
 /// Decoder trait to decode inbound messages from a source and produce human-readable and programmable
-/// output.
+/// output. Similar but adapted from the tokio_utils Decoder to be used within a no_std environment.
 pub trait Decoder {
-    type Item<'a> = DoipMessage<'a>;
+    /// The type of decoded frames
+    type Item;
+    /// The type of unrecoverable frame decoding errors.
+    ///
+    /// If an individual message is ill-formed but can be ignored without interfering with the
+    /// processing of future messages, it may be more useful to report the failure as an Item.
     type Error: From<DecodeError>;
 
-    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item<'_>>, Self::Error>;
+    /// Attempts to decode a frame from the provided buffer of bytes.
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error>;
 
+    /// Provides a Stream and Sink interface for reading and writing to this Io object,
+    /// using Decode and Encode to read and write the raw data.
     fn framed<T: AsyncRead + AsyncWrite + Sized>(self, io: T) -> Framed<T, Self>
     where
         Self: Sized,
@@ -81,8 +88,12 @@ pub trait Decoder {
     }
 }
 
+/// Encoder trait to encode runtime or compile time messages for diagnsotic applications into streamable
+/// bytes. Similar but adapted from the tokio_utils Encoder to be used within a no_std environment.
 pub trait Encoder<Item> {
+    /// The type of encoding errors.
     type Error: From<EncodeError>;
 
+    /// Encodes a frame into the buffer provided.
     fn encode(&mut self, item: Item, dst: &mut BytesMut) -> Result<(), Self::Error>;
 }

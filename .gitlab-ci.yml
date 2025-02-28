@@ -1,0 +1,61 @@
+stages:
+  - test
+  - build
+  - docs
+
+# Cache dependencies to speed up subsequent runs
+cache:
+  key: "$CI_COMMIT_REF_NAME"
+  paths:
+    - target
+    - .cargo
+
+lint-code:
+  stage: test
+  image: rust:latest
+  script:
+    - rustup component add clippy
+    - cargo clippy -- -D warnings
+
+# Run tests for the Rust project
+test:
+  stage: test
+  image: rust:latest
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: cobertura.xml
+  coverage: '/\d+\.\d+% coverage, /'
+  before_script:
+    - cargo install cargo-tarpaulin
+  script:
+    - cargo test
+    - cargo tarpaulin --force-clean --ignore-tests --verbose --engine llvm --fail-under=100 --out xml
+
+# Build the Rust project
+build:rust:
+  stage: build
+  image: rust:latest
+  script:
+    - cargo build --release --no-default-features
+  artifacts:
+    paths:
+      - target/release
+
+# Generate documentation
+pages:
+  stage: docs
+  image: rust:latest
+  script:
+    - cargo doc --no-deps
+    - mv target/doc public
+    - echo '<meta http-equiv=refresh content="0; url=doip_codec/index.html">' > public/index.html
+  artifacts:
+    paths:
+      # The folder that contains the files to be exposed at the Page URL
+      - public
+  rules:
+    # This ensures that only pushes to the default branch will trigger
+    # a pages deploy
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
