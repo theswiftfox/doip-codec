@@ -1,4 +1,4 @@
-use doip_definitions::payload::DoipMessage;
+use doip_definitions::DoipMessage;
 use tokio_util::bytes::BytesMut;
 
 use crate::{error::DecodeError, Decoder, DoipCodec};

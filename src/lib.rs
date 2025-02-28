@@ -51,6 +51,7 @@ mod decoder;
 mod doip_message;
 mod encoder;
 mod error;
+use doip_definitions::DoipMessage;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_util::{bytes::BytesMut, codec::Framed};
 
@@ -64,11 +65,13 @@ pub use crate::error::*;
 #[derive(Debug)]
 pub struct DoipCodec;
 
+/// Decoder trait to decode inbound messages from a source and produce human-readable and programmable
+/// output.
 pub trait Decoder {
-    type Item;
+    type Item<'a> = DoipMessage<'a>;
     type Error: From<DecodeError>;
 
-    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error>;
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item<'_>>, Self::Error>;
 
     fn framed<T: AsyncRead + AsyncWrite + Sized>(self, io: T) -> Framed<T, Self>
     where
