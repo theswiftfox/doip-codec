@@ -10,12 +10,6 @@ impl Decoder for DoipCodec {
     type Error = DecodeError;
 
     fn decode<'a>(&'a mut self, src: &'a mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        if src.is_empty() {
-            return Ok(None);
-        };
-
-        if src.len() > MAX {
-            return Err(DecodeError::ExceededLength);
-        };
+        todo!()
     }
 }
