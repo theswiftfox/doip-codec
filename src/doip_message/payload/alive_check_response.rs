@@ -19,7 +19,7 @@ impl<const N: usize> Encoder<AliveCheckResponse, N> for AliveCheckResponseCodec 
     ) -> Result<(), Self::Error> {
         let AliveCheckResponse { source_address } = item;
 
-        dst.extend_from_slice(&source_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&source_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

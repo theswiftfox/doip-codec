@@ -32,10 +32,10 @@ impl<const N: usize> Encoder<DoipHeader, N> for HeaderCodec {
             return Err(EncodeError::FailedProtocolValidation);
         }
 
-        dst.extend_from_slice(protocol_version_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
-        dst.extend_from_slice(inverse_protocol_version_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
-        dst.extend_from_slice(payload_type_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
-        dst.extend_from_slice(payload_length_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(protocol_version_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(inverse_protocol_version_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(payload_type_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(payload_length_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

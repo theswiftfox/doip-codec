@@ -17,7 +17,7 @@ impl<const N: usize> Encoder<GenericNack, N> for GenericNackCodec {
 
         let bytes = nack_code.to_bytes();
 
-        dst.extend_from_slice(bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(bytes).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

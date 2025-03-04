@@ -30,14 +30,14 @@ impl<const N: usize> Encoder<RoutingActivationResponse, N> for RoutingActivation
             buffer,
         } = item;
 
-        dst.extend_from_slice(&logical_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&logical_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&source_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&source_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
         let activation_code_bytes = activation_code.to_bytes();
-        dst.extend_from_slice(activation_code_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(activation_code_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&buffer).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&buffer).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

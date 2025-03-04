@@ -31,13 +31,13 @@ impl<const N: usize> Encoder<EntityStatusResponse, N> for EntityStatusResponseCo
         } = item;
 
         let node_type_bytes = node_type.to_bytes();
-        dst.extend_from_slice(node_type_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(node_type_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&max_concurrent_sockets).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&max_concurrent_sockets).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&currently_open_sockets).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&currently_open_sockets).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&max_data_size).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&max_data_size).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

@@ -21,7 +21,7 @@ impl<const N: usize> Encoder<VehicleIdentificationRequestEid, N>
     ) -> Result<(), Self::Error> {
         let VehicleIdentificationRequestEid { eid } = item;
 
-        dst.extend_from_slice(&eid).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&eid).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

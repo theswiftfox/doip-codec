@@ -20,7 +20,7 @@ impl<const N: usize> Encoder<PowerInformationResponse, N> for PowerInformationRe
         let PowerInformationResponse { power_mode } = item;
 
         let power_mode_bytes = power_mode.to_bytes();
-        dst.extend_from_slice(power_mode_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(power_mode_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

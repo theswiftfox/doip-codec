@@ -26,11 +26,11 @@ impl<const N: usize> Encoder<DiagnosticMessage<N>, N> for DiagnosticMessageCodec
             message,
         } = item;
 
-        dst.extend_from_slice(&source_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&source_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&target_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&target_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&message).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&message).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

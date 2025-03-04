@@ -22,7 +22,7 @@ impl<const N: usize> Encoder<VehicleIdentificationRequestVin, N>
         let VehicleIdentificationRequestVin { vin } = item;
 
         dst.extend_from_slice(&vin)
-            .map_err(|_| EncodeError::BufferTooSmall)?;
+            .map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }

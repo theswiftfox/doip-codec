@@ -36,20 +36,20 @@ impl<const N: usize> Encoder<VehicleAnnouncementMessage, N> for VehicleAnnouncem
             vin_gid_sync,
         } = item;
 
-        dst.extend_from_slice(&vin).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&vin).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&logical_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&logical_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&eid).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&eid).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&gid).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&gid).map_err(|()| EncodeError::BufferTooSmall)?;
 
         let further_action_bytes = further_action.to_bytes();
-        dst.extend_from_slice(further_action_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(further_action_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
 
         if let Some(sync_status) = vin_gid_sync {
             let sync_status_bytes = sync_status.to_bytes();
-            dst.extend_from_slice(sync_status_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+            dst.extend_from_slice(sync_status_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
         }
 
         Ok(())

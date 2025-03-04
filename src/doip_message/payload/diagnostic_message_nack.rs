@@ -26,12 +26,12 @@ impl<const N: usize> Encoder<DiagnosticMessageNack, N> for DiagnosticMessageNack
             nack_code,
         } = item;
 
-        dst.extend_from_slice(&source_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&source_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&target_address).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&target_address).map_err(|()| EncodeError::BufferTooSmall)?;
 
         let nack_code_bytes = nack_code.to_bytes();
-        dst.extend_from_slice(nack_code_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(nack_code_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
