@@ -26,12 +26,15 @@ impl<const N: usize> Encoder<DiagnosticMessageAck, N> for DiagnosticMessageAckCo
             ack_code,
         } = item;
 
-        dst.extend_from_slice(&source_address).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&source_address)
+            .map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&target_address).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&target_address)
+            .map_err(|()| EncodeError::BufferTooSmall)?;
 
         let ack_code_bytes = ack_code.to_bytes();
-        dst.extend_from_slice(ack_code_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(ack_code_bytes)
+            .map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -69,7 +72,8 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageAckCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let ack_code_bytes = &src[DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET..=DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET];
+        let ack_code_bytes =
+            &src[DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET..=DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET];
         let ack_code = DiagnosticAckCode::from_bytes(ack_code_bytes)
             .ok_or(DecodeError::InvalidDiagnosticAckCode)?;
 
