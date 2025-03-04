@@ -36,20 +36,20 @@ impl<const N: usize> Encoder<VehicleAnnouncementMessage, N> for VehicleAnnouncem
             vin_gid_sync,
         } = item;
 
-        dst.extend_from_slice(&vin);
+        dst.extend_from_slice(&vin).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&logical_address);
+        dst.extend_from_slice(&logical_address).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&eid);
+        dst.extend_from_slice(&eid).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&gid);
+        dst.extend_from_slice(&gid).map_err(|_| EncodeError::BufferTooSmall)?;
 
         let further_action_bytes = further_action.to_bytes();
-        dst.extend_from_slice(further_action_bytes);
+        dst.extend_from_slice(further_action_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
 
         if let Some(sync_status) = vin_gid_sync {
             let sync_status_bytes = sync_status.to_bytes();
-            dst.extend_from_slice(sync_status_bytes);
+            dst.extend_from_slice(sync_status_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
         }
 
         Ok(())
@@ -654,7 +654,7 @@ mod tests {
         let mut dst = Vec::<u8, BUFFER>::new();
 
         let bytes = &[0x02, 0xfd, 0x00, 0x04, 0x00, 0x00, 0x00, 0x06, 0xff];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);
@@ -670,7 +670,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42, 0x00,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::InvalidActionCode);
@@ -686,7 +686,7 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::InvalidSyncStatus);

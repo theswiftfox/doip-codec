@@ -98,7 +98,7 @@ mod tests {
         let mut dst = Vec::<u8, BUFFER>::new();
 
         let bytes = &[0x02, 0xfd, 0x40, 0x03, 0x00, 0x00, 0x00];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);

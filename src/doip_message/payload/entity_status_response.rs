@@ -31,13 +31,13 @@ impl<const N: usize> Encoder<EntityStatusResponse, N> for EntityStatusResponseCo
         } = item;
 
         let node_type_bytes = node_type.to_bytes();
-        dst.extend_from_slice(node_type_bytes);
+        dst.extend_from_slice(node_type_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&max_concurrent_sockets);
+        dst.extend_from_slice(&max_concurrent_sockets).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&currently_open_sockets);
+        dst.extend_from_slice(&currently_open_sockets).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&max_data_size);
+        dst.extend_from_slice(&max_data_size).map_err(|_| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -206,7 +206,7 @@ mod tests {
             0x02, 0xfd, 0x40, 0x02, 0x00, 0x00, 0x00, 0x07, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::InvalidNodeType);
@@ -220,7 +220,7 @@ mod tests {
         let bytes = &[
             0x02, 0xfd, 0x40, 0x02, 0x00, 0x00, 0x00, 0x07, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);

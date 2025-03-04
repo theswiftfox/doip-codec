@@ -21,7 +21,7 @@ impl<const N: usize> Encoder<VehicleIdentificationRequestEid, N>
     ) -> Result<(), Self::Error> {
         let VehicleIdentificationRequestEid { eid } = item;
 
-        dst.extend_from_slice(&eid);
+        dst.extend_from_slice(&eid).map_err(|_| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -109,7 +109,7 @@ mod tests {
         let mut dst = Vec::<u8, BUFFER>::new();
 
         let bytes = &[0x02, 0xfd, 0x00, 0x02, 0x00, 0x00, 0x00, 0x06, 0xff];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);

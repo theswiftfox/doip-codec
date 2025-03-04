@@ -26,12 +26,12 @@ impl<const N: usize> Encoder<DiagnosticMessageAck, N> for DiagnosticMessageAckCo
             ack_code,
         } = item;
 
-        dst.extend_from_slice(&source_address);
+        dst.extend_from_slice(&source_address).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&target_address);
+        dst.extend_from_slice(&target_address).map_err(|_| EncodeError::BufferTooSmall)?;
 
         let ack_code_bytes = ack_code.to_bytes();
-        dst.extend_from_slice(ack_code_bytes);
+        dst.extend_from_slice(ack_code_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -186,7 +186,7 @@ mod tests {
         let bytes = &[
             0x02, 0xfd, 0x80, 0x02, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x42,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::InvalidDiagnosticAckCode);
@@ -200,7 +200,7 @@ mod tests {
         let bytes = &[
             0x02, 0xfd, 0x80, 0x02, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);

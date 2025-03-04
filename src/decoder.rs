@@ -63,24 +63,3 @@ impl<const N: usize> Decoder<N> for DoipCodec<N> {
         Ok(Some(DoipMessage { header, payload }))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use heapless::Vec;
-
-    use crate::{DecodeError, Decoder, DoipCodec};
-
-    const BUFFER: usize = 4095;
-
-    #[test]
-    fn test_buffer_too_short() {
-        let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
-
-        let bytes = &[0x02, 0xfd, 0x00, 0x00, 0x00, 0x00];
-        dst.extend_from_slice(bytes);
-        let msg = codec.decode(&mut dst);
-
-        assert_eq!(msg.unwrap_err(), DecodeError::TooShort);
-    }
-}

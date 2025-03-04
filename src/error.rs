@@ -92,4 +92,8 @@ pub enum EncodeError {
     /// payload length mismatch
     #[error("payload length mismatch")]
     PayloadLengthValidation,
+
+    /// buffer provided too small
+    #[error("buffer provided too small")]
+    BufferTooSmall,
 }

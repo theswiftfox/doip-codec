@@ -30,14 +30,14 @@ impl<const N: usize> Encoder<RoutingActivationResponse, N> for RoutingActivation
             buffer,
         } = item;
 
-        dst.extend_from_slice(&logical_address);
+        dst.extend_from_slice(&logical_address).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&source_address);
+        dst.extend_from_slice(&source_address).map_err(|_| EncodeError::BufferTooSmall)?;
 
         let activation_code_bytes = activation_code.to_bytes();
-        dst.extend_from_slice(activation_code_bytes);
+        dst.extend_from_slice(activation_code_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&buffer);
+        dst.extend_from_slice(&buffer).map_err(|_| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -400,7 +400,7 @@ mod tests {
             0x02, 0xfd, 0x00, 0x06, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x42, 0x00,
             0x00, 0x00, 0x00,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::InvalidActivationCode);
@@ -414,7 +414,7 @@ mod tests {
         let bytes = &[
             0x02, 0xfd, 0x00, 0x06, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x10,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);

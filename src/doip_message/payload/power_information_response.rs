@@ -20,7 +20,7 @@ impl<const N: usize> Encoder<PowerInformationResponse, N> for PowerInformationRe
         let PowerInformationResponse { power_mode } = item;
 
         let power_mode_bytes = power_mode.to_bytes();
-        dst.extend_from_slice(power_mode_bytes);
+        dst.extend_from_slice(power_mode_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -166,7 +166,7 @@ mod tests {
         let mut dst = Vec::<u8, BUFFER>::new();
 
         let bytes = &[0x02, 0xfd, 0x40, 0x04, 0x00, 0x00, 0x00, 0x01, 0x42];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::InvalidPowerMode);
@@ -178,7 +178,7 @@ mod tests {
         let mut dst = Vec::<u8, BUFFER>::new();
 
         let bytes = &[0x02, 0xfd, 0x40, 0x04, 0x00, 0x00, 0x00, 0x01];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);

@@ -28,12 +28,12 @@ impl<const N: usize> Encoder<RoutingActivationRequest, N> for RoutingActivationR
             buffer,
         } = item;
 
-        dst.extend_from_slice(&source_address);
+        dst.extend_from_slice(&source_address).map_err(|_| EncodeError::BufferTooSmall)?;
 
         let activation_type_bytes = activation_type.to_bytes();
-        dst.extend_from_slice(activation_type_bytes);
+        dst.extend_from_slice(activation_type_bytes).map_err(|_| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&buffer);
+        dst.extend_from_slice(&buffer).map_err(|_| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -207,7 +207,7 @@ mod tests {
             0x02, 0xfd, 0x00, 0x05, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00,
             0x00,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::InvalidActivationType);
@@ -221,7 +221,7 @@ mod tests {
         let bytes = &[
             0x02, 0xfd, 0x00, 0x05, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x42, 0x00, 0x00,
         ];
-        dst.extend_from_slice(bytes);
+        dst.extend_from_slice(bytes).unwrap();
         let msg = codec.decode(&mut dst);
 
         assert_eq!(msg.unwrap_err(), DecodeError::TooShort);
