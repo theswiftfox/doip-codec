@@ -15,16 +15,24 @@ categories = [
   "encoding",
 ]
 
-[dependencies]
-doip-definitions = "1.0.0"
-thiserror = "2.0.9"
-tokio-util = { version = "0.7.13", features = ["codec"] }
-
-[dev-dependencies]
-tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros", "net"] }
-futures = "0.3.31"
+[profile.dev]
+panic = "abort"
 
 [profile.release]
-strip = true      # Automatically strip symbols from the binary.
-lto = true
-codegen-units = 1
+panic = "abort"
+
+[profile.test]
+panic = "abort"
+
+[dependencies]
+doip-definitions = { version = "3.0.4", default-features = false }
+heapless = "0.8.0"
+thiserror = { version = "2.0.12", default-features = false }
+
+[dev-dependencies]
+futures = "0.3.31"
+doip-definitions = { version = "3.0.4" }
+
+[features]
+default = ["std"]
+std = []
