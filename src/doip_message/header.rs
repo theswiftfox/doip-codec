@@ -163,7 +163,7 @@ impl<const N: usize> Decoder<N> for HeaderCodec {
 
 impl FromBytes for ProtocolVersion {
     fn from_bytes(bytes: &[u8]) -> Option<Self> {
-        let val = *bytes.get(0)?; // Use `get()` directly for safety
+        let val = *bytes.first()?; // Use `get()` directly for safety
 
         match val {
             v if v == ProtocolVersion::ReservedVer as u8 => Some(ProtocolVersion::ReservedVer),

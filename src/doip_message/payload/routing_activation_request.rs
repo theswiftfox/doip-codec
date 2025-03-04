@@ -2,7 +2,7 @@ use doip_definitions::{
     definitions::{
         DOIP_HEADER_LEN, DOIP_ROUTING_ACTIVATION_REQ_ISO_LEN,
         DOIP_ROUTING_ACTIVATION_REQ_ISO_OFFSET_V2, DOIP_ROUTING_ACTIVATION_REQ_LEN,
-        DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN, DOIP_ROUTING_ACTIVATION_REQ_TYPE_LEN_V2,
+        DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN,
         DOIP_ROUTING_ACTIVATION_REQ_TYPE_OFFSET,
     },
     payload::{ActivationType, DoipPayload, RoutingActivationRequest},
@@ -31,7 +31,7 @@ impl<const N: usize> Encoder<RoutingActivationRequest, N> for RoutingActivationR
         dst.extend_from_slice(&source_address);
 
         let activation_type_bytes = activation_type.to_bytes();
-        dst.extend_from_slice(&activation_type_bytes);
+        dst.extend_from_slice(activation_type_bytes);
 
         dst.extend_from_slice(&buffer);
 
@@ -64,8 +64,7 @@ impl<const N: usize> Decoder<N> for RoutingActivationRequestCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let activation_type_bytes = &src[DOIP_ROUTING_ACTIVATION_REQ_TYPE_OFFSET
-            ..DOIP_ROUTING_ACTIVATION_REQ_TYPE_OFFSET + DOIP_ROUTING_ACTIVATION_REQ_TYPE_LEN_V2];
+        let activation_type_bytes = &src[DOIP_ROUTING_ACTIVATION_REQ_TYPE_OFFSET..=DOIP_ROUTING_ACTIVATION_REQ_TYPE_OFFSET];
 
         let activation_type = ActivationType::from_bytes(activation_type_bytes)
             .ok_or(DecodeError::InvalidActivationType)?;
@@ -90,7 +89,7 @@ impl FromBytes for ActivationType {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             v if v == ActivationType::Default as u8 => Some(ActivationType::Default),

@@ -45,7 +45,7 @@ impl<const N: usize> Decoder<N> for GenericNackCodec {
             return Err(DecodeError::TooShort);
         }
 
-        let nack_code_bytes = &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_GENERIC_NACK_LEN];
+        let nack_code_bytes = &src[DOIP_HEADER_LEN..=DOIP_HEADER_LEN];
 
         let nack_code =
             NackCode::from_bytes(nack_code_bytes).ok_or(DecodeError::InvalidNackCode)?;
@@ -61,7 +61,7 @@ impl FromBytes for NackCode {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             a if a == NackCode::IncorrectPatternFormat as u8 => {

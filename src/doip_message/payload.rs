@@ -45,54 +45,54 @@ impl<const N: usize> Encoder<DoipPayload<N>, N> for PayloadCodec {
     fn encode(&mut self, item: DoipPayload<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
         match item {
             DoipPayload::GenericNack(generic_nack) => {
-                GenericNackCodec {}.encode(generic_nack, dst)?
+                GenericNackCodec {}.encode(generic_nack, dst)?;
             }
             DoipPayload::VehicleIdentificationRequest(vehicle_identification_request) => {
-                VehicleIdentificationRequestCodec {}.encode(vehicle_identification_request, dst)?
+                VehicleIdentificationRequestCodec {}.encode(vehicle_identification_request, dst)?;
             }
             DoipPayload::VehicleIdentificationRequestEid(vehicle_identification_request_eid) => {
                 VehicleIdentificationRequestEidCodec {}
-                    .encode(vehicle_identification_request_eid, dst)?
+                    .encode(vehicle_identification_request_eid, dst)?;
             }
             DoipPayload::VehicleIdentificationRequestVin(vehicle_identification_request_vin) => {
                 VehicleIdentificationRequestVinCodec {}
-                    .encode(vehicle_identification_request_vin, dst)?
+                    .encode(vehicle_identification_request_vin, dst)?;
             }
             DoipPayload::VehicleAnnouncementMessage(vehicle_announcement_message) => {
-                VehicleAnnouncementMessageCodec {}.encode(vehicle_announcement_message, dst)?
+                VehicleAnnouncementMessageCodec {}.encode(vehicle_announcement_message, dst)?;
             }
             DoipPayload::RoutingActivationRequest(routing_activation_request) => {
-                RoutingActivationRequestCodec {}.encode(routing_activation_request, dst)?
+                RoutingActivationRequestCodec {}.encode(routing_activation_request, dst)?;
             }
             DoipPayload::RoutingActivationResponse(routing_activation_response) => {
-                RoutingActivationResponseCodec {}.encode(routing_activation_response, dst)?
+                RoutingActivationResponseCodec {}.encode(routing_activation_response, dst)?;
             }
             DoipPayload::AliveCheckRequest(alive_check_request) => {
-                AliveCheckRequestCodec {}.encode(alive_check_request, dst)?
+                AliveCheckRequestCodec {}.encode(alive_check_request, dst)?;
             }
             DoipPayload::AliveCheckResponse(alive_check_response) => {
-                AliveCheckResponseCodec {}.encode(alive_check_response, dst)?
+                AliveCheckResponseCodec {}.encode(alive_check_response, dst)?;
             }
             DoipPayload::EntityStatusRequest(entity_status_request) => {
-                EntityStatusRequestCodec {}.encode(entity_status_request, dst)?
+                EntityStatusRequestCodec {}.encode(entity_status_request, dst)?;
             }
             DoipPayload::EntityStatusResponse(entity_status_response) => {
-                EntityStatusResponseCodec {}.encode(entity_status_response, dst)?
+                EntityStatusResponseCodec {}.encode(entity_status_response, dst)?;
             }
             DoipPayload::PowerInformationRequest(power_information_request) => {
-                PowerInformationRequestCodec {}.encode(power_information_request, dst)?
+                PowerInformationRequestCodec {}.encode(power_information_request, dst)?;
             }
             DoipPayload::PowerInformationResponse(power_information_response) => {
-                PowerInformationResponseCodec {}.encode(power_information_response, dst)?
+                PowerInformationResponseCodec {}.encode(power_information_response, dst)?;
             }
             DoipPayload::DiagnosticMessage(diagnostic_message) => {
-                DiagnosticMessageCodec {}.encode(diagnostic_message, dst)?
+                DiagnosticMessageCodec {}.encode(diagnostic_message, dst)?;
             }
             DoipPayload::DiagnosticMessageAck(diagnostic_message_ack) => {
-                DiagnosticMessageAckCodec {}.encode(diagnostic_message_ack, dst)?
+                DiagnosticMessageAckCodec {}.encode(diagnostic_message_ack, dst)?;
             }
             DoipPayload::DiagnosticMessageNack(diagnostic_message_nack) => {
-                DiagnosticMessageNackCodec {}.encode(diagnostic_message_nack, dst)?
+                DiagnosticMessageNackCodec {}.encode(diagnostic_message_nack, dst)?;
             }
         };
         Ok(())

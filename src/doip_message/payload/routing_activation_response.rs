@@ -1,6 +1,6 @@
 use doip_definitions::{
     definitions::{
-        DOIP_HEADER_LEN, DOIP_ROUTING_ACTIVATION_RES_CODE_LEN,
+        DOIP_HEADER_LEN,
         DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET, DOIP_ROUTING_ACTIVATION_RES_ENTITY_LEN,
         DOIP_ROUTING_ACTIVATION_RES_ENTITY_OFFSET, DOIP_ROUTING_ACTIVATION_RES_ISO_LEN,
         DOIP_ROUTING_ACTIVATION_RES_ISO_OFFSET, DOIP_ROUTING_ACTIVATION_RES_LEN,
@@ -35,7 +35,7 @@ impl<const N: usize> Encoder<RoutingActivationResponse, N> for RoutingActivation
         dst.extend_from_slice(&source_address);
 
         let activation_code_bytes = activation_code.to_bytes();
-        dst.extend_from_slice(&activation_code_bytes);
+        dst.extend_from_slice(activation_code_bytes);
 
         dst.extend_from_slice(&buffer);
 
@@ -104,8 +104,7 @@ impl<const N: usize> Decoder<N> for RoutingActivationResponseCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let activation_code_bytes = &src[DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET
-            ..DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET + DOIP_ROUTING_ACTIVATION_RES_CODE_LEN];
+        let activation_code_bytes = &src[DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET..=DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET];
         let activation_code = ActivationCode::from_bytes(activation_code_bytes)
             .ok_or(DecodeError::InvalidActivationCode)?;
 
@@ -130,7 +129,7 @@ impl FromBytes for ActivationCode {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             v if v == ActivationCode::DeniedUnknownSourceAddress as u8 => {

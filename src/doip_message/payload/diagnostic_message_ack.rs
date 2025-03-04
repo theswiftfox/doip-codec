@@ -31,7 +31,7 @@ impl<const N: usize> Encoder<DiagnosticMessageAck, N> for DiagnosticMessageAckCo
         dst.extend_from_slice(&target_address);
 
         let ack_code_bytes = ack_code.to_bytes();
-        dst.extend_from_slice(&ack_code_bytes);
+        dst.extend_from_slice(ack_code_bytes);
 
         Ok(())
     }
@@ -69,8 +69,7 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageAckCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let ack_code_bytes = &src[DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET
-            ..DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET + DOIP_DIAG_MESSAGE_ACK_CODE_LEN];
+        let ack_code_bytes = &src[DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET..=DOIP_DIAG_MESSAGE_ACK_CODE_OFFSET];
         let ack_code = DiagnosticAckCode::from_bytes(ack_code_bytes)
             .ok_or(DecodeError::InvalidDiagnosticAckCode)?;
 
@@ -89,7 +88,7 @@ impl FromBytes for DiagnosticAckCode {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         if val == DiagnosticAckCode::Acknowledged as u8 {
             Some(DiagnosticAckCode::Acknowledged)

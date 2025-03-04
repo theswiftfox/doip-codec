@@ -20,7 +20,7 @@ impl<const N: usize> Encoder<PowerInformationResponse, N> for PowerInformationRe
         let PowerInformationResponse { power_mode } = item;
 
         let power_mode_bytes = power_mode.to_bytes();
-        dst.extend_from_slice(&power_mode_bytes);
+        dst.extend_from_slice(power_mode_bytes);
 
         Ok(())
     }
@@ -46,7 +46,7 @@ impl<const N: usize> Decoder<N> for PowerInformationResponseCodec {
             return Err(DecodeError::TooShort);
         }
 
-        let power_mode_bytes = &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_POWER_MODE_LEN];
+        let power_mode_bytes = &src[DOIP_HEADER_LEN..=DOIP_HEADER_LEN];
         let power_mode =
             PowerMode::from_bytes(power_mode_bytes).ok_or(DecodeError::InvalidPowerMode)?;
 
@@ -61,7 +61,7 @@ impl FromBytes for PowerMode {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             v if v == PowerMode::NotReady as u8 => Some(PowerMode::NotReady),

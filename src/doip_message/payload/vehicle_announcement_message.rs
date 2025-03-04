@@ -1,11 +1,10 @@
 use doip_definitions::{
     definitions::{
-        DOIP_COMMON_EID_LEN, DOIP_COMMON_VIN_LEN, DOIP_HEADER_LEN,
-        DOIP_VEHICLE_ANNOUNCEMENT_ACTION_LEN, DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET,
+        DOIP_COMMON_EID_LEN, DOIP_COMMON_VIN_LEN, DOIP_HEADER_LEN, DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET,
         DOIP_VEHICLE_ANNOUNCEMENT_ADDRESS_LEN, DOIP_VEHICLE_ANNOUNCEMENT_ADDRESS_OFFSET,
         DOIP_VEHICLE_ANNOUNCEMENT_EID_OFFSET, DOIP_VEHICLE_ANNOUNCEMENT_GID_LEN,
         DOIP_VEHICLE_ANNOUNCEMENT_GID_OFFSET, DOIP_VEHICLE_ANNOUNCEMENT_LEN_LONG,
-        DOIP_VEHICLE_ANNOUNCEMENT_LEN_SHORT, DOIP_VEHICLE_ANNOUNCEMENT_SYNC_LEN,
+        DOIP_VEHICLE_ANNOUNCEMENT_LEN_SHORT,
         DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET,
     },
     payload::{ActionCode, DoipPayload, SyncStatus, VehicleAnnouncementMessage},
@@ -46,11 +45,11 @@ impl<const N: usize> Encoder<VehicleAnnouncementMessage, N> for VehicleAnnouncem
         dst.extend_from_slice(&gid);
 
         let further_action_bytes = further_action.to_bytes();
-        dst.extend_from_slice(&further_action_bytes);
+        dst.extend_from_slice(further_action_bytes);
 
         if let Some(sync_status) = vin_gid_sync {
             let sync_status_bytes = sync_status.to_bytes();
-            dst.extend_from_slice(&sync_status_bytes);
+            dst.extend_from_slice(sync_status_bytes);
         }
 
         Ok(())
@@ -138,8 +137,7 @@ impl<const N: usize> Decoder<N> for VehicleAnnouncementMessageCodec {
             .try_into()
             .expect("If failed, source has been manipulated at runtime.");
 
-        let further_action_bytes = src[DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET
-            ..DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET + DOIP_VEHICLE_ANNOUNCEMENT_ACTION_LEN]
+        let further_action_bytes = src[DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET..=DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET]
             .try_into()
             .expect("If failed, source has been manipulated at runtime.");
 
@@ -149,8 +147,7 @@ impl<const N: usize> Decoder<N> for VehicleAnnouncementMessageCodec {
         // Determine if the sync status byte is present based on payload length
         let expected_payload_length = DOIP_VEHICLE_ANNOUNCEMENT_LEN_LONG;
         let vin_gid_sync = if header.payload_length as usize == expected_payload_length {
-            let bytes = &src[DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET
-                ..DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET + DOIP_VEHICLE_ANNOUNCEMENT_SYNC_LEN];
+            let bytes = &src[DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET..=DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET];
             Some(SyncStatus::from_bytes(bytes).ok_or(DecodeError::InvalidSyncStatus)?)
         } else {
             None
@@ -174,7 +171,7 @@ impl FromBytes for ActionCode {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             v if v == ActionCode::NoFurtherActionRequired as u8 => {
@@ -238,7 +235,7 @@ impl FromBytes for SyncStatus {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             v if v == SyncStatus::VinGidSynchronized as u8 => Some(SyncStatus::VinGidSynchronized),

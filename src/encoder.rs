@@ -14,10 +14,10 @@ impl<const N: usize> Encoder<DoipMessage<N>, N> for DoipCodec<N> {
         validate_payload_match(&item)?;
 
         let header_len = item.header.payload_length as usize;
-        let _ = HeaderCodec {}.encode(item.header, dst)?;
+        let () = HeaderCodec {}.encode(item.header, dst)?;
 
         let before_len = dst.len();
-        let _ = PayloadCodec {}.encode(item.payload, dst)?;
+        let () = PayloadCodec {}.encode(item.payload, dst)?;
         let after_len = dst.len();
 
         validate_payload_length(header_len, after_len - before_len)?;
@@ -84,7 +84,7 @@ fn validate_payload_match<const N: usize>(item: &DoipMessage<N>) -> Result<(), E
 }
 
 fn validate_payload_length(header_len: usize, length: usize) -> Result<(), EncodeError> {
-    if header_len as usize != length {
+    if header_len != length {
         return Err(EncodeError::PayloadLengthValidation);
     }
     Ok(())

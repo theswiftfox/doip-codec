@@ -31,7 +31,7 @@ impl<const N: usize> Encoder<DiagnosticMessageNack, N> for DiagnosticMessageNack
         dst.extend_from_slice(&target_address);
 
         let nack_code_bytes = nack_code.to_bytes();
-        dst.extend_from_slice(&nack_code_bytes);
+        dst.extend_from_slice(nack_code_bytes);
 
         Ok(())
     }
@@ -89,8 +89,7 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageNackCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let nack_code_bytes = &src[DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET
-            ..DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET + DOIP_DIAG_MESSAGE_NACK_CODE_LEN];
+        let nack_code_bytes = &src[DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET..=DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET];
         let nack_code = DiagnosticNackCode::from_bytes(nack_code_bytes)
             .ok_or(DecodeError::InvalidDiagnosticNackCode)?;
 
@@ -109,7 +108,7 @@ impl FromBytes for DiagnosticNackCode {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             v if v == DiagnosticNackCode::ReservedByIso13400_00 as u8 => {

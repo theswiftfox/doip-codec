@@ -5,7 +5,7 @@
 //! # Diagnostics over Internet Protocol Codec Crate
 //!
 //! The purpose of this crate is to provide an easy way to encode and decode
-//! DoIP Messages defined in the `doip-definitions` crate.
+//! `DoIP` Messages defined in the `doip-definitions` crate.
 //!
 //! ## Example Usage
 //! ```no_run
@@ -64,7 +64,7 @@ use heapless::Vec;
 pub struct DoipCodec<const N: usize> {}
 
 /// Decoder trait to decode inbound messages from a source and produce human-readable and programmable
-/// output. Similar but adapted from the tokio_utils Decoder to be used within a no_std environment.
+/// output. Similar but adapted from the `tokio_utils` Decoder to be used within a `no_std` environment.
 pub trait Decoder<const N: usize> {
     /// The type of decoded frames
     type Item;
@@ -79,7 +79,7 @@ pub trait Decoder<const N: usize> {
 }
 
 /// Encoder trait to encode runtime or compile time messages for diagnsotic applications into streamable
-/// bytes. Similar but adapted from the tokio_utils Encoder to be used within a no_std environment.
+/// bytes. Similar but adapted from the `tokio_utils` Encoder to be used within a `no_std` environment.
 pub trait Encoder<Item, const N: usize> {
     /// The type of encoding errors.
     type Error: From<EncodeError>;

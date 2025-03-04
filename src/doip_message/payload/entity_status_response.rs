@@ -1,9 +1,9 @@
 use doip_definitions::{
     definitions::{
-        DOIP_ENTITY_STATUS_RESPONSE_LEN, DOIP_ENTITY_STATUS_RESPONSE_MCTS_LEN,
+        DOIP_ENTITY_STATUS_RESPONSE_LEN,
         DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET, DOIP_ENTITY_STATUS_RESPONSE_MDS_LEN,
-        DOIP_ENTITY_STATUS_RESPONSE_MDS_OFFSET, DOIP_ENTITY_STATUS_RESPONSE_NCTS_LEN,
-        DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET, DOIP_ENTITY_STATUS_RESPONSE_NODE_LEN,
+        DOIP_ENTITY_STATUS_RESPONSE_MDS_OFFSET,
+        DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET,
         DOIP_HEADER_LEN,
     },
     payload::{DoipPayload, EntityStatusResponse, NodeType},
@@ -31,7 +31,7 @@ impl<const N: usize> Encoder<EntityStatusResponse, N> for EntityStatusResponseCo
         } = item;
 
         let node_type_bytes = node_type.to_bytes();
-        dst.extend_from_slice(&node_type_bytes);
+        dst.extend_from_slice(node_type_bytes);
 
         dst.extend_from_slice(&max_concurrent_sockets);
 
@@ -63,17 +63,15 @@ impl<const N: usize> Decoder<N> for EntityStatusResponseCodec {
         }
 
         let node_type_bytes =
-            &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_ENTITY_STATUS_RESPONSE_NODE_LEN];
+            &src[DOIP_HEADER_LEN..=DOIP_HEADER_LEN];
         let node_type =
             NodeType::from_bytes(node_type_bytes).ok_or(DecodeError::InvalidNodeType)?;
 
-        let max_concurrent_sockets = src[DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET
-            ..DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET + DOIP_ENTITY_STATUS_RESPONSE_MCTS_LEN]
+        let max_concurrent_sockets = src[DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET..=DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET]
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let currently_open_sockets = src[DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET
-            ..DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET + DOIP_ENTITY_STATUS_RESPONSE_NCTS_LEN]
+        let currently_open_sockets = src[DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET..=DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET]
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
@@ -98,7 +96,7 @@ impl FromBytes for NodeType {
     where
         Self: Sized,
     {
-        let val = *bytes.get(0)?;
+        let val = *bytes.first()?;
 
         match val {
             v if v == NodeType::DoipGateway as u8 => Some(NodeType::DoipGateway),
