@@ -51,10 +51,9 @@ mod decoder;
 mod doip_message;
 mod encoder;
 mod error;
-use tokio::io::{AsyncRead, AsyncWrite};
-use tokio_util::{bytes::BytesMut, codec::Framed};
 
 pub use crate::error::*;
+use heapless::Vec;
 
 /// A simple Decoder and Encoder implementation for Diagnostics over Internet
 /// Protocol.
@@ -62,11 +61,11 @@ pub use crate::error::*;
 /// Can be used independently via `encode` and `decode` methods, however is best
 /// utilised during.
 #[derive(Debug)]
-pub struct DoipCodec;
+pub struct DoipCodec<const N: usize> {}
 
 /// Decoder trait to decode inbound messages from a source and produce human-readable and programmable
 /// output. Similar but adapted from the tokio_utils Decoder to be used within a no_std environment.
-pub trait Decoder {
+pub trait Decoder<const N: usize> {
     /// The type of decoded frames
     type Item;
     /// The type of unrecoverable frame decoding errors.
@@ -76,24 +75,32 @@ pub trait Decoder {
     type Error: From<DecodeError>;
 
     /// Attempts to decode a frame from the provided buffer of bytes.
-    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error>;
-
-    /// Provides a Stream and Sink interface for reading and writing to this Io object,
-    /// using Decode and Encode to read and write the raw data.
-    fn framed<T: AsyncRead + AsyncWrite + Sized>(self, io: T) -> Framed<T, Self>
-    where
-        Self: Sized,
-    {
-        Framed::new(io, self)
-    }
+    fn decode(&mut self, src: &mut Vec::<u8, N>) -> Result<Option<Self::Item>, Self::Error>;
 }
 
 /// Encoder trait to encode runtime or compile time messages for diagnsotic applications into streamable
 /// bytes. Similar but adapted from the tokio_utils Encoder to be used within a no_std environment.
-pub trait Encoder<Item> {
+pub trait Encoder<Item, const N: usize> {
     /// The type of encoding errors.
     type Error: From<EncodeError>;
 
     /// Encodes a frame into the buffer provided.
-    fn encode(&mut self, item: Item, dst: &mut BytesMut) -> Result<(), Self::Error>;
+    fn encode(&mut self, item: Item, dst: &mut Vec::<u8, N>) -> Result<(), Self::Error>;
+}
+
+trait ToBytes {
+    fn to_bytes(self) -> &'static [u8];
+}
+
+trait FromBytes {
+    fn from_bytes(bytes: &[u8]) -> Option<Self>
+    where
+        Self: Sized;
+}
+
+// Panic handler for `no_std` environments (only when `std` is NOT enabled)
+#[cfg(all(not(feature = "std"), not(test)))]
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    loop {}
 }

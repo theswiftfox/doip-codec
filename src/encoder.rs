@@ -1,74 +1,143 @@
-use doip_definitions::{header::PayloadType, DoipMessage};
-use tokio_util::bytes::BytesMut;
+use doip_definitions::{header::PayloadType, payload::DoipPayload, DoipMessage};
+use heapless::Vec;
 
 use crate::{
-    doip_message::{HeaderCodec, PayloadCodec},
+    doip_message::{header::HeaderCodec, payload::PayloadCodec},
     error::EncodeError,
     DoipCodec, Encoder,
 };
 
-impl Encoder<DoipMessage<'static>> for DoipCodec {
+impl<const N: usize> Encoder<DoipMessage<N>, N> for DoipCodec<N> {
     type Error = EncodeError;
 
-    fn encode(
-        &mut self,
-        item: DoipMessage,
-        dst: &mut tokio_util::bytes::BytesMut,
-    ) -> Result<(), Self::Error> {
-        let mut header_encoder = HeaderCodec {};
+    fn encode(&mut self, item: DoipMessage<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+        validate_payload_match(&item)?;
 
-        match item.header.payload_type {
-            PayloadType::GenericNack => todo!(),
-            PayloadType::VehicleIdentificationRequest => todo!(),
-            PayloadType::VehicleIdentificationRequestEid => todo!(),
-            PayloadType::VehicleIdentificationRequestVin => todo!(),
-            PayloadType::VehicleAnnouncementMessage => todo!(),
-            PayloadType::RoutingActivationRequest => todo!(),
-            PayloadType::RoutingActivationResponse => todo!(),
-            PayloadType::AliveCheckRequest => todo!(),
-            PayloadType::AliveCheckResponse => todo!(),
-            PayloadType::EntityStatusRequest => todo!(),
-            PayloadType::EntityStatusResponse => todo!(),
-            PayloadType::PowerInformationRequest => todo!(),
-            PayloadType::PowerInformationResponse => todo!(),
-            PayloadType::DiagnosticMessage => todo!(),
-            PayloadType::DiagnosticMessageAck => todo!(),
-            PayloadType::DiagnosticMessageNack => todo!(),
-        };
+        let header_len = item.header.payload_length as usize;
+        let _ = HeaderCodec {}.encode(item.header, dst)?;
 
-        todo!()
+        let before_len = dst.len();
+        let _ = PayloadCodec {}.encode(item.payload, dst)?;
+        let after_len = dst.len();
+
+        validate_payload_length(header_len, after_len - before_len)?;
+
+        Ok(())
     }
+}
+
+fn validate_payload_match<const N: usize>(item: &DoipMessage<N>) -> Result<(), EncodeError> {
+    let valid = match item.payload {
+        DoipPayload::GenericNack(_) => item.header.payload_type == PayloadType::GenericNack,
+        DoipPayload::VehicleIdentificationRequest(_) => {
+            item.header.payload_type == PayloadType::VehicleIdentificationRequest
+        }
+        DoipPayload::VehicleIdentificationRequestEid(_) => {
+            item.header.payload_type == PayloadType::VehicleIdentificationRequestEid
+        }
+        DoipPayload::VehicleIdentificationRequestVin(_) => {
+            item.header.payload_type == PayloadType::VehicleIdentificationRequestVin
+        }
+        DoipPayload::VehicleAnnouncementMessage(_) => {
+            item.header.payload_type == PayloadType::VehicleAnnouncementMessage
+        }
+        DoipPayload::RoutingActivationRequest(_) => {
+            item.header.payload_type == PayloadType::RoutingActivationRequest
+        }
+        DoipPayload::RoutingActivationResponse(_) => {
+            item.header.payload_type == PayloadType::RoutingActivationResponse
+        }
+        DoipPayload::AliveCheckRequest(_) => {
+            item.header.payload_type == PayloadType::AliveCheckRequest
+        }
+        DoipPayload::AliveCheckResponse(_) => {
+            item.header.payload_type == PayloadType::AliveCheckResponse
+        }
+        DoipPayload::EntityStatusRequest(_) => {
+            item.header.payload_type == PayloadType::EntityStatusRequest
+        }
+        DoipPayload::EntityStatusResponse(_) => {
+            item.header.payload_type == PayloadType::EntityStatusResponse
+        }
+        DoipPayload::PowerInformationRequest(_) => {
+            item.header.payload_type == PayloadType::PowerInformationRequest
+        }
+        DoipPayload::PowerInformationResponse(_) => {
+            item.header.payload_type == PayloadType::PowerInformationResponse
+        }
+        DoipPayload::DiagnosticMessage(_) => {
+            item.header.payload_type == PayloadType::DiagnosticMessage
+        }
+        DoipPayload::DiagnosticMessageAck(_) => {
+            item.header.payload_type == PayloadType::DiagnosticMessageAck
+        }
+        DoipPayload::DiagnosticMessageNack(_) => {
+            item.header.payload_type == PayloadType::DiagnosticMessageNack
+        }
+    };
+
+    if valid {
+        Ok(())
+    } else {
+        Err(EncodeError::PayloadTypeValidation)
+    }
+}
+
+fn validate_payload_length(header_len: usize, length: usize) -> Result<(), EncodeError> {
+    if header_len as usize != length {
+        return Err(EncodeError::PayloadLengthValidation);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
-        payload::{AliveCheckRequest, DoipPayload},
+        payload::{AliveCheckRequest, DoipPayload, GenericNack, NackCode},
         DoipMessage,
     };
-    use tokio_util::bytes::BytesMut;
 
-    use crate::{DoipCodec, Encoder};
+    use crate::encoder::validate_payload_length;
+
+    use super::validate_payload_match;
 
     #[test]
-    fn test_encode_single_message_success() {
-        let mut encoder = DoipCodec {};
-        let mut dst = BytesMut::new();
-
-        let item = DoipMessage {
+    fn test_validate_payload_match() {
+        let item_valid = DoipMessage {
             header: DoipHeader {
                 protocol_version: ProtocolVersion::Iso13400_2012,
                 inverse_protocol_version: 0xfd,
-                payload_type: PayloadType::AliveCheckRequest,
-                payload_length: 0u32,
+                payload_type: PayloadType::GenericNack,
+                payload_length: 1u32,
             },
-            payload: DoipPayload::AliveCheckRequest(AliveCheckRequest {}),
+            payload: DoipPayload::<1>::GenericNack(GenericNack {
+                nack_code: NackCode::OutOfMemory,
+            }),
+        };
+        let valid = validate_payload_match(&item_valid);
+        assert!(valid.is_ok());
+
+        let item_invalid = DoipMessage {
+            header: DoipHeader {
+                protocol_version: ProtocolVersion::Iso13400_2012,
+                inverse_protocol_version: 0xfd,
+                payload_type: PayloadType::GenericNack,
+                payload_length: 1u32,
+            },
+            payload: DoipPayload::<1>::AliveCheckRequest(AliveCheckRequest {}),
         };
 
-        let bytes = encoder.encode(item, &mut dst);
+        let invalid = validate_payload_match(&item_invalid);
+        assert!(invalid.is_err());
+    }
 
-        assert!(bytes.is_ok(), "Expected bytes to be ok.");
-        assert_eq!(*dst, [0x02, 0xfd, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00])
+    #[test]
+    fn test_validate_payload_length() {
+        let valid = validate_payload_length(1, 1);
+        assert!(valid.is_ok());
+
+        let invalid = validate_payload_length(1, 2);
+        assert!(invalid.is_err());
     }
 }

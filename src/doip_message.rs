@@ -1,5 +1,2 @@
-#[derive(Debug)]
-pub struct HeaderCodec;
-
-#[derive(Debug)]
-pub struct PayloadCodec;
+pub mod header;
+pub mod payload;

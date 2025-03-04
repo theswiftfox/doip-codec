@@ -15,11 +15,24 @@ categories = [
   "encoding",
 ]
 
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+
+[profile.test]
+panic = "abort"
+
 [dependencies]
-doip-definitions = "3.0.1"
-thiserror = { version = "2.0.11", default-features = false }
-tokio-util = { version = "0.7.13", features = ["codec"] }
-tokio = { version = "1.43.0", features = ["rt-multi-thread", "macros", "net"] }
+doip-definitions = { version = "3.0.4", default-features = false }
+heapless = "0.8.0"
+thiserror = { version = "2.0.12", default-features = false }
 
 [dev-dependencies]
 futures = "0.3.31"
+doip-definitions = { version = "3.0.4" }
+
+[features]
+default = ["std"]
+std = []
