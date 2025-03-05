@@ -1,5 +1,8 @@
+#[cfg(feature = "std")]
+use std::io;
+
 /// A wrapper to encapsulate Parser and IO errors which can occur
-#[derive(thiserror::Error, Debug, Clone, PartialEq)]
+#[derive(thiserror::Error, Debug)]
 pub enum DecodeError {
     /// Exceeded length
     #[error("exceeded available length")]
@@ -76,10 +79,15 @@ pub enum DecodeError {
     /// message received is too large for buffer
     #[error("message received is too large for buffer")]
     MessageTooLarge,
+
+    /// IO error from Stream
+    #[error("Underlying I/O Error: {0}")]
+    #[cfg(feature = "std")]
+    IOError(#[from] io::Error),
 }
 
 /// A wrapper to encapsulate IO errors which can occur
-#[derive(thiserror::Error, Debug, PartialEq)]
+#[derive(thiserror::Error, Debug)]
 pub enum EncodeError {
     /// failed protocol validation
     #[error("failed protocol validation")]
@@ -96,4 +104,9 @@ pub enum EncodeError {
     /// buffer provided too small
     #[error("buffer provided too small")]
     BufferTooSmall,
+
+    /// IO error from Stream
+    #[error("Underlying I/O Error: {0}")]
+    #[cfg(feature = "std")]
+    IOError(#[from] io::Error),
 }

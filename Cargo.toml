@@ -36,6 +36,8 @@ pyo3 = { version = "0.23.5", features = [
   "abi3-py311",
   "extension-module",
 ], optional = true }
+tokio = { version = "1.43.0", features = ["net", "io-util"] }
+tokio-util = { version = "0.7.13", features = ["codec"] }
 
 [dev-dependencies]
 futures = "0.3.31"
