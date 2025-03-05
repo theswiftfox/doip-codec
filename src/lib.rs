@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)] // Use no_std when the "std" feature is disabled
 #![warn(clippy::pedantic)]
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
@@ -58,11 +58,4 @@ trait FromBytes {
     fn from_bytes(bytes: &[u8]) -> Option<Self>
     where
         Self: Sized;
-}
-
-// Panic handler for `no_std` environments (only when `std` is NOT enabled)
-#[cfg(all(not(feature = "std"), not(test)))]
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {}
 }

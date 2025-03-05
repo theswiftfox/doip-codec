@@ -33,6 +33,10 @@ thiserror = { version = "2.0.12", default-features = false }
 futures = "0.3.31"
 doip-definitions = { version = "3.0.4" }
 
+[lib]
+name = "doip_codec"
+crate-type = ["cdylib", "rlib"]
+
 [features]
 default = ["std"]
 std = []
