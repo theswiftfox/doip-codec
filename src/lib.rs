@@ -59,3 +59,8 @@ trait FromBytes {
     where
         Self: Sized;
 }
+
+// Python bindings (only available when std is enabled)
+#[cfg(feature = "std")]
+#[cfg(any(not(test), rust_analyzer))]
+mod bindings;

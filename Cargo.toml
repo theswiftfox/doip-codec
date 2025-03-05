@@ -19,15 +19,23 @@ categories = [
 panic = "abort"
 
 [profile.release]
+strip = true
+lto = true
+codegen-units = 1
 panic = "abort"
 
 [profile.test]
-panic = "abort"
+opt-level = 0
+debug = true
 
 [dependencies]
-doip-definitions = { version = "3.0.4", default-features = false }
+doip-definitions = { version = "3.0.4" }
 heapless = "0.8.0"
-thiserror = { version = "2.0.12", default-features = false }
+thiserror = { version = "2.0.12" }
+pyo3 = { version = "0.23.5", features = [
+  "abi3-py311",
+  "extension-module",
+], optional = true }
 
 [dev-dependencies]
 futures = "0.3.31"
@@ -39,4 +47,4 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["std"]
-std = []
+std = ["pyo3"]    # Enable std and pyo3 when building for Python
