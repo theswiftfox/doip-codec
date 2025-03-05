@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.4](https://github.com/samp-reston/doip-codec/compare/v2.0.3...v2.0.4) - 2025-03-05
+
+### Other
+
+- add tokio support for std envs
+- add encode and decode impl for tokio
+
 ## [2.0.3](https://github.com/samp-reston/doip-codec/compare/v2.0.2...v2.0.3) - 2025-03-05
 
 ### Other
