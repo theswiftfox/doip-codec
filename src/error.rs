@@ -84,6 +84,10 @@ pub enum DecodeError {
     #[error("Underlying I/O Error: {0}")]
     #[cfg(feature = "std")]
     IOError(#[from] io::Error),
+
+    /// buffer is too small
+    #[error("buffer is too small")]
+    BufferTooSmall,
 }
 
 /// A wrapper to encapsulate IO errors which can occur

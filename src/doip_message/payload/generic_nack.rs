@@ -12,7 +12,7 @@ pub struct GenericNackCodec;
 impl<const N: usize> Encoder<GenericNack, N> for GenericNackCodec {
     type Error = EncodeError;
 
-    fn encode(&mut self, item: GenericNack, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: GenericNack, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
         let GenericNack { nack_code } = item;
 
         let bytes = nack_code.to_bytes();
@@ -40,7 +40,7 @@ impl<const N: usize> Decoder<N> for GenericNackCodec {
 
     type Error = DecodeError;
 
-    fn decode(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_GENERIC_NACK_LEN {
             return Err(DecodeError::TooShort);
         }
@@ -79,7 +79,7 @@ impl FromBytes for NackCode {
 #[cfg(test)]
 mod tests {
     use crate::{
-        doip_message::payload::generic_nack::GenericNackCodec, DecodeError, Decoder, DoipCodec,
+        doip_message::payload::generic_nack::GenericNackCodec, Decoder, DoipCodec,
         Encoder, FromBytes, ToBytes,
     };
     use doip_definitions::{
@@ -107,8 +107,8 @@ mod tests {
         let mut codec = DoipCodec {};
         let mut dst = Vec::<u8, BUFFER>::new();
 
-        let _ = codec.encode(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.decode(&mut dst);
+        let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -126,7 +126,7 @@ mod tests {
 
         let bytes = &[0x02, 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
         dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -138,7 +138,7 @@ mod tests {
 
         let bytes = &[0x02, 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff];
         dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -148,7 +148,7 @@ mod tests {
         let mut encoder = DoipCodec {};
         let mut dst = Vec::<u8, BUFFER>::new();
 
-        let bytes = encoder.encode(SUCCESS_ROOT.clone(), &mut dst);
+        let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
         assert!(bytes.is_ok(), "Expected bytes to be ok.");
         assert_eq!(*dst, [0x02, 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02])

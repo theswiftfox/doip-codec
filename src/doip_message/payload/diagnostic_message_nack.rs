@@ -15,7 +15,7 @@ pub struct DiagnosticMessageNackCodec;
 impl<const N: usize> Encoder<DiagnosticMessageNack, N> for DiagnosticMessageNackCodec {
     type Error = EncodeError;
 
-    fn encode(
+    fn to_bytes(
         &mut self,
         item: DiagnosticMessageNack,
         dst: &mut Vec<u8, N>,
@@ -26,12 +26,15 @@ impl<const N: usize> Encoder<DiagnosticMessageNack, N> for DiagnosticMessageNack
             nack_code,
         } = item;
 
-        dst.extend_from_slice(&source_address).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&source_address)
+            .map_err(|()| EncodeError::BufferTooSmall)?;
 
-        dst.extend_from_slice(&target_address).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&target_address)
+            .map_err(|()| EncodeError::BufferTooSmall)?;
 
         let nack_code_bytes = nack_code.to_bytes();
-        dst.extend_from_slice(nack_code_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(nack_code_bytes)
+            .map_err(|()| EncodeError::BufferTooSmall)?;
 
         Ok(())
     }
@@ -70,7 +73,7 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageNackCodec {
 
     type Error = DecodeError;
 
-    fn decode(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len()
             < DOIP_HEADER_LEN
                 + DOIP_DIAG_COMMON_SOURCE_LEN
@@ -89,7 +92,8 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageNackCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let nack_code_bytes = &src[DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET..=DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET];
+        let nack_code_bytes =
+            &src[DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET..=DOIP_DIAG_MESSAGE_NACK_CODE_OFFSET];
         let nack_code = DiagnosticNackCode::from_bytes(nack_code_bytes)
             .ok_or(DecodeError::InvalidDiagnosticNackCode)?;
 
@@ -248,7 +252,7 @@ mod tests {
         let mut encoder = DoipCodec {};
         let mut dst = Vec::<u8, BUFFER>::new();
 
-        let bytes = encoder.encode(SUCCESS_ROOT.clone(), &mut dst);
+        let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
         assert!(bytes.is_ok(), "Expected bytes to be ok.");
         assert_eq!(
@@ -262,8 +266,8 @@ mod tests {
         let mut codec = DoipCodec {};
         let mut dst = Vec::<u8, BUFFER>::new();
 
-        let _ = codec.encode(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.decode(&mut dst);
+        let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -283,7 +287,7 @@ mod tests {
             0x02, 0xfd, 0x80, 0x03, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x42,
         ];
         dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -297,7 +301,7 @@ mod tests {
             0x02, 0xfd, 0x80, 0x03, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00,
         ];
         dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

@@ -15,7 +15,7 @@ pub struct HeaderCodec;
 impl<const N: usize> Encoder<DoipHeader, N> for HeaderCodec {
     type Error = EncodeError;
 
-    fn encode(&mut self, item: DoipHeader, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: DoipHeader, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
         let DoipHeader {
             protocol_version,
             inverse_protocol_version,
@@ -129,7 +129,7 @@ impl<const N: usize> Decoder<N> for HeaderCodec {
     type Item = DoipHeader;
     type Error = DecodeError;
 
-    fn decode(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN {
             return Err(DecodeError::TooShort);
         }
@@ -243,7 +243,7 @@ impl FromBytes for PayloadType {
 
 #[cfg(test)]
 mod tests {
-    use crate::{DecodeError, Decoder, EncodeError, Encoder, FromBytes, ToBytes};
+    use crate::{Decoder, Encoder, FromBytes, ToBytes};
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DoipPayload, GenericNack, NackCode},
@@ -494,9 +494,9 @@ mod tests {
 
         let bytes = &[0x02, 0x0fd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
         dst.extend_from_slice(bytes).unwrap();
-        let item = codec.decode(&mut dst);
+        let item = codec.from_bytes(&mut dst);
 
-        let _ = codec.encode(item.unwrap().unwrap(), &mut src);
+        let _ = codec.to_bytes(item.unwrap().unwrap(), &mut src);
 
         assert_eq!(*src, *bytes)
     }
@@ -506,7 +506,7 @@ mod tests {
         let mut codec = HeaderCodec {};
         let mut src = Vec::<u8, 4095>::new();
 
-        let res = codec.encode(
+        let res = codec.to_bytes(
             DoipHeader {
                 protocol_version: ProtocolVersion::Iso13400_2012,
                 inverse_protocol_version: 0xff,
@@ -524,8 +524,8 @@ mod tests {
         let mut codec = HeaderCodec {};
         let mut dst = Vec::<u8, 4095>::new();
 
-        let _ = codec.encode(SUCCESS_ROOT.header.clone(), &mut dst);
-        let msg = codec.decode(&mut dst);
+        let _ = codec.to_bytes(SUCCESS_ROOT.header.clone(), &mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -543,7 +543,7 @@ mod tests {
 
         dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00])
             .unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -555,7 +555,7 @@ mod tests {
 
         dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00])
             .unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -567,7 +567,7 @@ mod tests {
 
         dst.extend_from_slice(&[0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
             .unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -579,7 +579,7 @@ mod tests {
 
         dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
             .unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -591,7 +591,7 @@ mod tests {
 
         dst.extend_from_slice(&[0x02, 0xfd, 0x90, 0x42, 0x00, 0x00, 0x00, 0x00])
             .unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

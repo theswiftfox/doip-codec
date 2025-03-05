@@ -42,57 +42,57 @@ pub struct PayloadCodec;
 impl<const N: usize> Encoder<DoipPayload<N>, N> for PayloadCodec {
     type Error = EncodeError;
 
-    fn encode(&mut self, item: DoipPayload<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: DoipPayload<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
         match item {
             DoipPayload::GenericNack(generic_nack) => {
-                GenericNackCodec {}.encode(generic_nack, dst)?;
+                GenericNackCodec {}.to_bytes(generic_nack, dst)?;
             }
             DoipPayload::VehicleIdentificationRequest(vehicle_identification_request) => {
-                VehicleIdentificationRequestCodec {}.encode(vehicle_identification_request, dst)?;
+                VehicleIdentificationRequestCodec {}.to_bytes(vehicle_identification_request, dst)?;
             }
             DoipPayload::VehicleIdentificationRequestEid(vehicle_identification_request_eid) => {
                 VehicleIdentificationRequestEidCodec {}
-                    .encode(vehicle_identification_request_eid, dst)?;
+                    .to_bytes(vehicle_identification_request_eid, dst)?;
             }
             DoipPayload::VehicleIdentificationRequestVin(vehicle_identification_request_vin) => {
                 VehicleIdentificationRequestVinCodec {}
-                    .encode(vehicle_identification_request_vin, dst)?;
+                    .to_bytes(vehicle_identification_request_vin, dst)?;
             }
             DoipPayload::VehicleAnnouncementMessage(vehicle_announcement_message) => {
-                VehicleAnnouncementMessageCodec {}.encode(vehicle_announcement_message, dst)?;
+                VehicleAnnouncementMessageCodec {}.to_bytes(vehicle_announcement_message, dst)?;
             }
             DoipPayload::RoutingActivationRequest(routing_activation_request) => {
-                RoutingActivationRequestCodec {}.encode(routing_activation_request, dst)?;
+                RoutingActivationRequestCodec {}.to_bytes(routing_activation_request, dst)?;
             }
             DoipPayload::RoutingActivationResponse(routing_activation_response) => {
-                RoutingActivationResponseCodec {}.encode(routing_activation_response, dst)?;
+                RoutingActivationResponseCodec {}.to_bytes(routing_activation_response, dst)?;
             }
             DoipPayload::AliveCheckRequest(alive_check_request) => {
-                AliveCheckRequestCodec {}.encode(alive_check_request, dst)?;
+                AliveCheckRequestCodec {}.to_bytes(alive_check_request, dst)?;
             }
             DoipPayload::AliveCheckResponse(alive_check_response) => {
-                AliveCheckResponseCodec {}.encode(alive_check_response, dst)?;
+                AliveCheckResponseCodec {}.to_bytes(alive_check_response, dst)?;
             }
             DoipPayload::EntityStatusRequest(entity_status_request) => {
-                EntityStatusRequestCodec {}.encode(entity_status_request, dst)?;
+                EntityStatusRequestCodec {}.to_bytes(entity_status_request, dst)?;
             }
             DoipPayload::EntityStatusResponse(entity_status_response) => {
-                EntityStatusResponseCodec {}.encode(entity_status_response, dst)?;
+                EntityStatusResponseCodec {}.to_bytes(entity_status_response, dst)?;
             }
             DoipPayload::PowerInformationRequest(power_information_request) => {
-                PowerInformationRequestCodec {}.encode(power_information_request, dst)?;
+                PowerInformationRequestCodec {}.to_bytes(power_information_request, dst)?;
             }
             DoipPayload::PowerInformationResponse(power_information_response) => {
-                PowerInformationResponseCodec {}.encode(power_information_response, dst)?;
+                PowerInformationResponseCodec {}.to_bytes(power_information_response, dst)?;
             }
             DoipPayload::DiagnosticMessage(diagnostic_message) => {
-                DiagnosticMessageCodec {}.encode(diagnostic_message, dst)?;
+                DiagnosticMessageCodec {}.to_bytes(diagnostic_message, dst)?;
             }
             DoipPayload::DiagnosticMessageAck(diagnostic_message_ack) => {
-                DiagnosticMessageAckCodec {}.encode(diagnostic_message_ack, dst)?;
+                DiagnosticMessageAckCodec {}.to_bytes(diagnostic_message_ack, dst)?;
             }
             DoipPayload::DiagnosticMessageNack(diagnostic_message_nack) => {
-                DiagnosticMessageNackCodec {}.encode(diagnostic_message_nack, dst)?;
+                DiagnosticMessageNackCodec {}.to_bytes(diagnostic_message_nack, dst)?;
             }
         };
         Ok(())

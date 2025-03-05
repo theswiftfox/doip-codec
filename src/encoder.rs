@@ -10,14 +10,14 @@ use crate::{
 impl<const N: usize> Encoder<DoipMessage<N>, N> for DoipCodec<N> {
     type Error = EncodeError;
 
-    fn encode(&mut self, item: DoipMessage<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: DoipMessage<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
         validate_payload_match(&item)?;
 
         let header_len = item.header.payload_length as usize;
-        let () = HeaderCodec {}.encode(item.header, dst)?;
+        let () = HeaderCodec {}.to_bytes(item.header, dst)?;
 
         let before_len = dst.len();
-        let () = PayloadCodec {}.encode(item.payload, dst)?;
+        let () = PayloadCodec {}.to_bytes(item.payload, dst)?;
         let after_len = dst.len();
 
         validate_payload_length(header_len, after_len - before_len)?;
@@ -88,6 +88,23 @@ fn validate_payload_length(header_len: usize, length: usize) -> Result<(), Encod
         return Err(EncodeError::PayloadLengthValidation);
     }
     Ok(())
+}
+
+#[cfg(feature = "std")]
+impl<const N: usize> tokio_util::codec::Encoder<DoipMessage<N>> for DoipCodec<N> {
+    type Error = EncodeError;
+
+    fn encode(
+        &mut self,
+        item: DoipMessage<N>,
+        dst: &mut tokio_util::bytes::BytesMut,
+    ) -> Result<(), Self::Error> {
+        let mut heapless_dst = heapless::Vec::<u8, N>::new();
+        heapless_dst
+            .extend_from_slice(&dst)
+            .map_err(|_| EncodeError::BufferTooSmall)?;
+        DoipCodec {}.to_bytes(item, &mut heapless_dst)
+    }
 }
 
 #[cfg(test)]

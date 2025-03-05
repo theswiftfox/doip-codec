@@ -15,7 +15,6 @@ mod encoder;
 mod error;
 
 pub use crate::error::*;
-use doip_definitions::DoipMessage;
 use heapless::Vec;
 
 /// A simple Decoder and Encoder implementation for Diagnostics over Internet
@@ -38,7 +37,7 @@ pub trait Decoder<const N: usize> {
     type Error: From<DecodeError>;
 
     /// Attempts to decode a frame from the provided buffer of bytes.
-    fn decode(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error>;
+    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error>;
 }
 
 /// Encoder trait to encode runtime or compile time messages for diagnsotic applications into streamable
@@ -48,7 +47,7 @@ pub trait Encoder<Item, const N: usize> {
     type Error: From<EncodeError>;
 
     /// Encodes a frame into the buffer provided.
-    fn encode(&mut self, item: Item, dst: &mut Vec<u8, N>) -> Result<(), Self::Error>;
+    fn to_bytes(&mut self, item: Item, dst: &mut Vec<u8, N>) -> Result<(), Self::Error>;
 }
 
 trait ToBytes {
@@ -65,30 +64,3 @@ trait FromBytes {
 #[cfg(feature = "std")]
 #[cfg(any(not(test), rust_analyzer))]
 mod bindings;
-
-#[cfg(feature = "std")]
-impl<const N: usize> tokio_util::codec::Decoder for DoipCodec<N> {
-    type Item = DoipMessage<N>;
-
-    type Error = DecodeError;
-
-    fn decode(
-        &mut self,
-        src: &mut tokio_util::bytes::BytesMut,
-    ) -> Result<Option<Self::Item>, Self::Error> {
-        todo!()
-    }
-}
-
-#[cfg(feature = "std")]
-impl<const N: usize> tokio_util::codec::Encoder<DoipMessage<N>> for DoipCodec<N> {
-    type Error = EncodeError;
-
-    fn encode(
-        &mut self,
-        item: DoipMessage<N>,
-        dst: &mut tokio_util::bytes::BytesMut,
-    ) -> Result<(), Self::Error> {
-        todo!()
-    }
-}

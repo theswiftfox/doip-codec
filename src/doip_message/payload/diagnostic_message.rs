@@ -15,7 +15,7 @@ pub struct DiagnosticMessageCodec {}
 impl<const N: usize> Encoder<DiagnosticMessage<N>, N> for DiagnosticMessageCodec {
     type Error = EncodeError;
 
-    fn encode(
+    fn to_bytes(
         &mut self,
         item: DiagnosticMessage<N>,
         dst: &mut Vec<u8, N>,
@@ -41,13 +41,13 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageCodec {
 
     type Error = DecodeError;
 
-    fn decode(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_DIAG_COMMON_SOURCE_LEN + DOIP_DIAG_COMMON_TARGET_LEN {
             return Err(DecodeError::TooShort);
         };
 
         let mut h_codec = HeaderCodec {};
-        let header = h_codec.decode(src)?.expect("Should never return Ok(None)");
+        let header = h_codec.from_bytes(src)?.expect("Should never return Ok(None)");
 
         let source_address = src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_DIAG_COMMON_SOURCE_LEN]
             .try_into()

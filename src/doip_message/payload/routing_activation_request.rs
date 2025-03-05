@@ -17,7 +17,7 @@ pub struct RoutingActivationRequestCodec;
 impl<const N: usize> Encoder<RoutingActivationRequest, N> for RoutingActivationRequestCodec {
     type Error = EncodeError;
 
-    fn encode(
+    fn to_bytes(
         &mut self,
         item: RoutingActivationRequest,
         dst: &mut Vec<u8, N>,
@@ -54,7 +54,7 @@ impl<const N: usize> Decoder<N> for RoutingActivationRequestCodec {
 
     type Error = DecodeError;
 
-    fn decode(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_ROUTING_ACTIVATION_REQ_LEN {
             return Err(DecodeError::TooShort);
         };
@@ -111,7 +111,7 @@ mod tests {
     };
     use heapless::Vec;
 
-    use crate::{DecodeError, Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
+    use crate::{ Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
 
     const BUFFER: usize = 4095;
 
@@ -169,8 +169,8 @@ mod tests {
         let mut codec = DoipCodec {};
         let mut dst = Vec::<u8, BUFFER>::new();
 
-        let _ = codec.encode(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.decode(&mut dst);
+        let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -186,7 +186,7 @@ mod tests {
         let mut encoder = DoipCodec {};
         let mut dst = Vec::<u8, BUFFER>::new();
 
-        let bytes = encoder.encode(SUCCESS_ROOT.clone(), &mut dst);
+        let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
         assert!(bytes.is_ok(), "Expected bytes to be ok.");
         assert_eq!(
@@ -208,7 +208,7 @@ mod tests {
             0x00,
         ];
         dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -222,7 +222,7 @@ mod tests {
             0x02, 0xfd, 0x00, 0x05, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x42, 0x00, 0x00,
         ];
         dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.decode(&mut dst);
+        let msg = codec.from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
