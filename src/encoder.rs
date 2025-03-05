@@ -99,11 +99,13 @@ impl<const N: usize> tokio_util::codec::Encoder<DoipMessage<N>> for DoipCodec<N>
         item: DoipMessage<N>,
         dst: &mut tokio_util::bytes::BytesMut,
     ) -> Result<(), Self::Error> {
+        println!("{:?}", item);
         let mut heapless_dst = heapless::Vec::<u8, N>::new();
-        heapless_dst
-            .extend_from_slice(&dst)
-            .map_err(|_| EncodeError::BufferTooSmall)?;
-        DoipCodec {}.to_bytes(item, &mut heapless_dst)
+
+        DoipCodec {}.to_bytes(item, &mut heapless_dst)?;
+        dst.extend_from_slice(&heapless_dst);
+
+        Ok(())
     }
 }
 
