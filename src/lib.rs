@@ -7,44 +7,6 @@
 //! The purpose of this crate is to provide an easy way to encode and decode
 //! `DoIP` Messages defined in the `doip-definitions` crate.
 //!
-//! ## Example Usage
-//! ```no_run
-//! use futures::{SinkExt, StreamExt};
-//! use tokio::net::TcpStream;
-//! use tokio_util::codec::Framed;
-//! use doip_definitions::{
-//!     header::DoipVersion,
-//!     message::{DoipMessage, VehicleIdentificationRequest},
-//! };
-//! use doip_codec::DoipCodec;
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!   // Connect to a DoIP server
-//!   let stream = TcpStream::connect("127.0.0.1:13400").await?;
-//!
-//!   // Wrap the stream with the DoipCodec
-//!   let mut framed = Framed::new(stream, DoipCodec);
-//!
-//!   // Send a DoIP message
-//!   let request = DoipMessage::new(
-//!       DoipVersion::Iso13400_2012,
-//!       Box::new(VehicleIdentificationRequest {}),
-//!   ); // Example payload
-//!
-//!   framed.send(request).await?;
-//!
-//!   // Receive a DoIP message
-//!   if let Some(response) = framed.next().await {
-//!       match response {
-//!           Ok(msg) => println!("Received message: {:?}", msg),
-//!           Err(e) => eprintln!("Failed to decode message: {}", e),
-//!       }
-//!   }
-//!
-//!   Ok(())
-//! }
-//! ```
 //!
 
 mod decoder;
@@ -75,7 +37,7 @@ pub trait Decoder<const N: usize> {
     type Error: From<DecodeError>;
 
     /// Attempts to decode a frame from the provided buffer of bytes.
-    fn decode(&mut self, src: &mut Vec::<u8, N>) -> Result<Option<Self::Item>, Self::Error>;
+    fn decode(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error>;
 }
 
 /// Encoder trait to encode runtime or compile time messages for diagnsotic applications into streamable
@@ -85,7 +47,7 @@ pub trait Encoder<Item, const N: usize> {
     type Error: From<EncodeError>;
 
     /// Encodes a frame into the buffer provided.
-    fn encode(&mut self, item: Item, dst: &mut Vec::<u8, N>) -> Result<(), Self::Error>;
+    fn encode(&mut self, item: Item, dst: &mut Vec<u8, N>) -> Result<(), Self::Error>;
 }
 
 trait ToBytes {
