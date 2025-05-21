@@ -7,7 +7,6 @@ use doip_definitions::payload::DoipPayload;
 use entity_status_request::EntityStatusRequestCodec;
 use entity_status_response::EntityStatusResponseCodec;
 use generic_nack::GenericNackCodec;
-use heapless::Vec;
 use power_information_request::PowerInformationRequestCodec;
 use power_information_response::PowerInformationResponseCodec;
 use routing_activation_request::RoutingActivationRequestCodec;
@@ -39,16 +38,17 @@ pub mod vehicle_identification_request_vin;
 #[derive(Debug)]
 pub struct PayloadCodec;
 
-impl<const N: usize> Encoder<DoipPayload<N>, N> for PayloadCodec {
+impl Encoder<DoipPayload> for PayloadCodec {
     type Error = EncodeError;
 
-    fn to_bytes(&mut self, item: DoipPayload<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: DoipPayload, dst: &mut Vec<u8>) -> Result<(), Self::Error> {
         match item {
             DoipPayload::GenericNack(generic_nack) => {
                 GenericNackCodec {}.to_bytes(generic_nack, dst)?;
             }
             DoipPayload::VehicleIdentificationRequest(vehicle_identification_request) => {
-                VehicleIdentificationRequestCodec {}.to_bytes(vehicle_identification_request, dst)?;
+                VehicleIdentificationRequestCodec {}
+                    .to_bytes(vehicle_identification_request, dst)?;
             }
             DoipPayload::VehicleIdentificationRequestEid(vehicle_identification_request_eid) => {
                 VehicleIdentificationRequestEidCodec {}

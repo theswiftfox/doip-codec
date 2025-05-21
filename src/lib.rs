@@ -14,7 +14,6 @@ mod encoder;
 mod error;
 
 pub use crate::error::*;
-use heapless::Vec;
 
 /// A simple Decoder and Encoder implementation for Diagnostics over Internet
 /// Protocol.
@@ -22,11 +21,11 @@ use heapless::Vec;
 /// Can be used independently via `encode` and `decode` methods, however is best
 /// utilised during.
 #[derive(Debug)]
-pub struct DoipCodec<const N: usize> {}
+pub struct DoipCodec {}
 
 /// Decoder trait to decode inbound messages from a source and produce human-readable and programmable
 /// output. Similar but adapted from the `tokio_utils` Decoder to be used within a `no_std` environment.
-pub trait Decoder<const N: usize> {
+pub trait Decoder {
     /// The type of decoded frames
     type Item;
     /// The type of unrecoverable frame decoding errors.
@@ -36,17 +35,17 @@ pub trait Decoder<const N: usize> {
     type Error: From<DecodeError>;
 
     /// Attempts to decode a frame from the provided buffer of bytes.
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error>;
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error>;
 }
 
 /// Encoder trait to encode runtime or compile time messages for diagnsotic applications into streamable
 /// bytes. Similar but adapted from the `tokio_utils` Encoder to be used within a `no_std` environment.
-pub trait Encoder<Item, const N: usize> {
+pub trait Encoder<Item> {
     /// The type of encoding errors.
     type Error: From<EncodeError>;
 
     /// Encodes a frame into the buffer provided.
-    fn to_bytes(&mut self, item: Item, dst: &mut Vec<u8, N>) -> Result<(), Self::Error>;
+    fn to_bytes(&mut self, item: Item, dst: &mut Vec<u8>) -> Result<(), Self::Error>;
 }
 
 trait ToBytes {

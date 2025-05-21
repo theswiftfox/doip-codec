@@ -2,33 +2,28 @@ use doip_definitions::{
     definitions::DOIP_HEADER_LEN,
     payload::{AliveCheckRequest, DoipPayload},
 };
-use heapless::Vec;
 
 use crate::{DecodeError, Decoder, EncodeError, Encoder};
 
 #[derive(Debug)]
 pub struct AliveCheckRequestCodec;
 
-impl<const N: usize> Encoder<AliveCheckRequest, N> for AliveCheckRequestCodec {
+impl Encoder<AliveCheckRequest> for AliveCheckRequestCodec {
     type Error = EncodeError;
 
-    fn to_bytes(
-        &mut self,
-        item: AliveCheckRequest,
-        _dst: &mut Vec<u8, N>,
-    ) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: AliveCheckRequest, _dst: &mut Vec<u8>) -> Result<(), Self::Error> {
         let AliveCheckRequest {} = item;
 
         Ok(())
     }
 }
 
-impl<const N: usize> Decoder<N> for AliveCheckRequestCodec {
-    type Item = DoipPayload<N>;
+impl Decoder for AliveCheckRequestCodec {
+    type Item = DoipPayload;
 
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN {
             return Err(DecodeError::TooShort);
         }
@@ -44,16 +39,13 @@ mod tests {
         message::DoipMessage,
         payload::{AliveCheckRequest, DoipPayload},
     };
-    use heapless::Vec;
 
     use crate::{
         doip_message::payload::alive_check_request::AliveCheckRequestCodec, Decoder, DoipCodec,
         Encoder,
     };
 
-    const BUFFER: usize = 4095;
-
-    static SUCCESS_ROOT: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -66,7 +58,7 @@ mod tests {
     #[test]
     fn test_encode_alive_check_request_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
@@ -77,10 +69,10 @@ mod tests {
     #[test]
     fn test_decode_alive_check_request_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -94,11 +86,11 @@ mod tests {
     #[test]
     fn test_decode_alive_check_request_too_short() {
         let mut codec = AliveCheckRequestCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[0x02, 0xfd, 0x00, 0x07, 0x00, 0x00, 0x00];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

@@ -2,22 +2,21 @@ use doip_definitions::{
     definitions::{DOIP_GENERIC_NACK_LEN, DOIP_HEADER_LEN},
     payload::{DoipPayload, GenericNack, NackCode},
 };
-use heapless::Vec;
 
 use crate::{DecodeError, Decoder, EncodeError, Encoder, FromBytes, ToBytes};
 
 #[derive(Debug)]
 pub struct GenericNackCodec;
 
-impl<const N: usize> Encoder<GenericNack, N> for GenericNackCodec {
+impl Encoder<GenericNack> for GenericNackCodec {
     type Error = EncodeError;
 
-    fn to_bytes(&mut self, item: GenericNack, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: GenericNack, dst: &mut Vec<u8>) -> Result<(), Self::Error> {
         let GenericNack { nack_code } = item;
 
         let bytes = nack_code.to_bytes();
 
-        dst.extend_from_slice(bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(bytes);
 
         Ok(())
     }
@@ -35,17 +34,17 @@ impl ToBytes for NackCode {
     }
 }
 
-impl<const N: usize> Decoder<N> for GenericNackCodec {
-    type Item = DoipPayload<N>;
+impl Decoder for GenericNackCodec {
+    type Item = DoipPayload;
 
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_GENERIC_NACK_LEN {
             return Err(DecodeError::TooShort);
         }
 
-        let nack_code_bytes = &src[DOIP_HEADER_LEN..=DOIP_HEADER_LEN];
+        let nack_code_bytes = &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_GENERIC_NACK_LEN];
 
         let nack_code =
             NackCode::from_bytes(nack_code_bytes).ok_or(DecodeError::InvalidNackCode)?;
@@ -79,18 +78,16 @@ impl FromBytes for NackCode {
 #[cfg(test)]
 mod tests {
     use crate::{
-        doip_message::payload::generic_nack::GenericNackCodec, Decoder, DoipCodec,
-        Encoder, FromBytes, ToBytes,
+        doip_message::payload::generic_nack::GenericNackCodec, Decoder, DoipCodec, Encoder,
+        FromBytes, ToBytes,
     };
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
-        payload::{DoipPayload, GenericNack, NackCode},
         message::DoipMessage,
+        payload::{DoipPayload, GenericNack, NackCode},
     };
-    use heapless::Vec;
-    const BUFFER: usize = 4095;
 
-    static SUCCESS_ROOT: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -105,10 +102,10 @@ mod tests {
     #[test]
     fn test_decode_generic_nack_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -122,11 +119,11 @@ mod tests {
     #[test]
     fn test_decode_generic_nack_invalid_payload() {
         let mut codec = GenericNackCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[0x02, 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -134,11 +131,11 @@ mod tests {
     #[test]
     fn test_decode_generic_nack_invalid_nack() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[0x02, 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -146,7 +143,7 @@ mod tests {
     #[test]
     fn test_encode_single_message_generic_nack_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 

@@ -1,5 +1,4 @@
 use doip_definitions::{header::PayloadType, message::DoipMessage, payload::DoipPayload};
-use heapless::Vec;
 
 use crate::{
     doip_message::{header::HeaderCodec, payload::PayloadCodec},
@@ -7,10 +6,10 @@ use crate::{
     DoipCodec, Encoder,
 };
 
-impl<const N: usize> Encoder<DoipMessage<N>, N> for DoipCodec<N> {
+impl Encoder<DoipMessage> for DoipCodec {
     type Error = EncodeError;
 
-    fn to_bytes(&mut self, item: DoipMessage<N>, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: DoipMessage, dst: &mut Vec<u8>) -> Result<(), Self::Error> {
         validate_payload_match(&item)?;
 
         let header_len = item.header.payload_length as usize;
@@ -26,7 +25,7 @@ impl<const N: usize> Encoder<DoipMessage<N>, N> for DoipCodec<N> {
     }
 }
 
-fn validate_payload_match<const N: usize>(item: &DoipMessage<N>) -> Result<(), EncodeError> {
+fn validate_payload_match(item: &DoipMessage) -> Result<(), EncodeError> {
     let valid = match item.payload {
         DoipPayload::GenericNack(_) => item.header.payload_type == PayloadType::GenericNack,
         DoipPayload::VehicleIdentificationRequest(_) => {
@@ -90,16 +89,15 @@ fn validate_payload_length(header_len: usize, length: usize) -> Result<(), Encod
     Ok(())
 }
 
-impl<const N: usize> tokio_util::codec::Encoder<DoipMessage<N>> for DoipCodec<N> {
+impl tokio_util::codec::Encoder<DoipMessage> for DoipCodec {
     type Error = EncodeError;
 
     fn encode(
         &mut self,
-        item: DoipMessage<N>,
+        item: DoipMessage,
         dst: &mut tokio_util::bytes::BytesMut,
     ) -> Result<(), Self::Error> {
-        println!("{:?}", item);
-        let mut heapless_dst = heapless::Vec::<u8, N>::new();
+        let mut heapless_dst = Vec::<u8>::new();
 
         DoipCodec {}.to_bytes(item, &mut heapless_dst)?;
         dst.extend_from_slice(&heapless_dst);
@@ -129,7 +127,7 @@ mod tests {
                 payload_type: PayloadType::GenericNack,
                 payload_length: 1u32,
             },
-            payload: DoipPayload::<1>::GenericNack(GenericNack {
+            payload: DoipPayload::GenericNack(GenericNack {
                 nack_code: NackCode::OutOfMemory,
             }),
         };
@@ -143,7 +141,7 @@ mod tests {
                 payload_type: PayloadType::GenericNack,
                 payload_length: 1u32,
             },
-            payload: DoipPayload::<1>::AliveCheckRequest(AliveCheckRequest {}),
+            payload: DoipPayload::AliveCheckRequest(AliveCheckRequest {}),
         };
 
         let invalid = validate_payload_match(&item_invalid);

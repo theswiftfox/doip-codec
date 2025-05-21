@@ -1,27 +1,24 @@
 use doip_definitions::{
     definitions::{
-        DOIP_ENTITY_STATUS_RESPONSE_LEN,
-        DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET, DOIP_ENTITY_STATUS_RESPONSE_MDS_LEN,
-        DOIP_ENTITY_STATUS_RESPONSE_MDS_OFFSET,
-        DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET,
-        DOIP_HEADER_LEN,
+        DOIP_ENTITY_STATUS_RESPONSE_LEN, DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET,
+        DOIP_ENTITY_STATUS_RESPONSE_MDS_LEN, DOIP_ENTITY_STATUS_RESPONSE_MDS_OFFSET,
+        DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET, DOIP_HEADER_LEN,
     },
     payload::{DoipPayload, EntityStatusResponse, NodeType},
 };
-use heapless::Vec;
 
 use crate::{DecodeError, Decoder, EncodeError, Encoder, FromBytes, ToBytes};
 
 #[derive(Debug)]
 pub struct EntityStatusResponseCodec;
 
-impl<const N: usize> Encoder<EntityStatusResponse, N> for EntityStatusResponseCodec {
+impl Encoder<EntityStatusResponse> for EntityStatusResponseCodec {
     type Error = EncodeError;
 
     fn to_bytes(
         &mut self,
         item: EntityStatusResponse,
-        dst: &mut Vec<u8, N>,
+        dst: &mut Vec<u8>,
     ) -> Result<(), Self::Error> {
         let EntityStatusResponse {
             node_type,
@@ -31,13 +28,13 @@ impl<const N: usize> Encoder<EntityStatusResponse, N> for EntityStatusResponseCo
         } = item;
 
         let node_type_bytes = node_type.to_bytes();
-        dst.extend_from_slice(node_type_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(node_type_bytes);
 
-        dst.extend_from_slice(&max_concurrent_sockets).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&max_concurrent_sockets);
 
-        dst.extend_from_slice(&currently_open_sockets).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&currently_open_sockets);
 
-        dst.extend_from_slice(&max_data_size).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&max_data_size);
 
         Ok(())
     }
@@ -52,26 +49,27 @@ impl ToBytes for NodeType {
     }
 }
 
-impl<const N: usize> Decoder<N> for EntityStatusResponseCodec {
-    type Item = DoipPayload<N>;
+impl Decoder for EntityStatusResponseCodec {
+    type Item = DoipPayload;
 
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_ENTITY_STATUS_RESPONSE_LEN {
             return Err(DecodeError::TooShort);
         }
 
-        let node_type_bytes =
-            &src[DOIP_HEADER_LEN..=DOIP_HEADER_LEN];
+        let node_type_bytes = &src[DOIP_HEADER_LEN..=DOIP_HEADER_LEN];
         let node_type =
             NodeType::from_bytes(node_type_bytes).ok_or(DecodeError::InvalidNodeType)?;
 
-        let max_concurrent_sockets = src[DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET..=DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET]
+        let max_concurrent_sockets = src
+            [DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET..=DOIP_ENTITY_STATUS_RESPONSE_MCTS_OFFSET]
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let currently_open_sockets = src[DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET..=DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET]
+        let currently_open_sockets = src
+            [DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET..=DOIP_ENTITY_STATUS_RESPONSE_NCTS_OFFSET]
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
@@ -110,16 +108,13 @@ impl FromBytes for NodeType {
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
-        payload::{DoipPayload, EntityStatusResponse, NodeType},
         message::DoipMessage,
+        payload::{DoipPayload, EntityStatusResponse, NodeType},
     };
-    use heapless::Vec;
 
-    use crate::{ Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
+    use crate::{Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
 
-    const BUFFER: usize = 4095;
-
-    static SUCCESS_ROOT: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -166,7 +161,7 @@ mod tests {
     #[test]
     fn test_encode_entity_status_response_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
@@ -183,10 +178,10 @@ mod tests {
     #[test]
     fn test_decode_entity_status_response_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -200,14 +195,14 @@ mod tests {
     #[test]
     fn test_decode_entity_status_response_invalid_node_type() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[
             0x02, 0xfd, 0x40, 0x02, 0x00, 0x00, 0x00, 0x07, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00,
         ];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -215,13 +210,13 @@ mod tests {
     #[test]
     fn test_decode_entity_status_response_too_short() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[
             0x02, 0xfd, 0x40, 0x02, 0x00, 0x00, 0x00, 0x07, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00,
         ];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

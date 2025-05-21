@@ -1,15 +1,14 @@
 use doip_definitions::{
     definitions::{
-        DOIP_COMMON_EID_LEN, DOIP_COMMON_VIN_LEN, DOIP_HEADER_LEN, DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET,
-        DOIP_VEHICLE_ANNOUNCEMENT_ADDRESS_LEN, DOIP_VEHICLE_ANNOUNCEMENT_ADDRESS_OFFSET,
-        DOIP_VEHICLE_ANNOUNCEMENT_EID_OFFSET, DOIP_VEHICLE_ANNOUNCEMENT_GID_LEN,
-        DOIP_VEHICLE_ANNOUNCEMENT_GID_OFFSET, DOIP_VEHICLE_ANNOUNCEMENT_LEN_LONG,
-        DOIP_VEHICLE_ANNOUNCEMENT_LEN_SHORT,
+        DOIP_COMMON_EID_LEN, DOIP_COMMON_VIN_LEN, DOIP_HEADER_LEN,
+        DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET, DOIP_VEHICLE_ANNOUNCEMENT_ADDRESS_LEN,
+        DOIP_VEHICLE_ANNOUNCEMENT_ADDRESS_OFFSET, DOIP_VEHICLE_ANNOUNCEMENT_EID_OFFSET,
+        DOIP_VEHICLE_ANNOUNCEMENT_GID_LEN, DOIP_VEHICLE_ANNOUNCEMENT_GID_OFFSET,
+        DOIP_VEHICLE_ANNOUNCEMENT_LEN_LONG, DOIP_VEHICLE_ANNOUNCEMENT_LEN_SHORT,
         DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET,
     },
     payload::{ActionCode, DoipPayload, SyncStatus, VehicleAnnouncementMessage},
 };
-use heapless::Vec;
 
 use crate::{
     doip_message::header::HeaderCodec, DecodeError, Decoder, EncodeError, Encoder, FromBytes,
@@ -19,13 +18,13 @@ use crate::{
 #[derive(Debug)]
 pub struct VehicleAnnouncementMessageCodec;
 
-impl<const N: usize> Encoder<VehicleAnnouncementMessage, N> for VehicleAnnouncementMessageCodec {
+impl Encoder<VehicleAnnouncementMessage> for VehicleAnnouncementMessageCodec {
     type Error = EncodeError;
 
     fn to_bytes(
         &mut self,
         item: VehicleAnnouncementMessage,
-        dst: &mut Vec<u8, N>,
+        dst: &mut Vec<u8>,
     ) -> Result<(), Self::Error> {
         let VehicleAnnouncementMessage {
             vin,
@@ -36,20 +35,20 @@ impl<const N: usize> Encoder<VehicleAnnouncementMessage, N> for VehicleAnnouncem
             vin_gid_sync,
         } = item;
 
-        dst.extend_from_slice(&vin).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&vin);
 
-        dst.extend_from_slice(&logical_address).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&logical_address);
 
-        dst.extend_from_slice(&eid).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&eid);
 
-        dst.extend_from_slice(&gid).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&gid);
 
         let further_action_bytes = further_action.to_bytes();
-        dst.extend_from_slice(further_action_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(further_action_bytes);
 
         if let Some(sync_status) = vin_gid_sync {
             let sync_status_bytes = sync_status.to_bytes();
-            dst.extend_from_slice(sync_status_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+            dst.extend_from_slice(sync_status_bytes);
         }
 
         Ok(())
@@ -104,19 +103,21 @@ impl ToBytes for SyncStatus {
     }
 }
 
-impl<const N: usize> Decoder<N> for VehicleAnnouncementMessageCodec {
-    type Item = DoipPayload<N>;
+impl Decoder for VehicleAnnouncementMessageCodec {
+    type Item = DoipPayload;
 
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_VEHICLE_ANNOUNCEMENT_LEN_SHORT {
             return Err(DecodeError::TooShort);
         }
 
         let mut h_codec = HeaderCodec {};
 
-        let header = h_codec.from_bytes(src)?.expect("Should never return Ok(None)");
+        let header = h_codec
+            .decode_from_bytes(src)?
+            .expect("Should never return Ok(None)");
 
         let vin = src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_COMMON_VIN_LEN]
             .try_into()
@@ -137,7 +138,8 @@ impl<const N: usize> Decoder<N> for VehicleAnnouncementMessageCodec {
             .try_into()
             .expect("If failed, source has been manipulated at runtime.");
 
-        let further_action_bytes = src[DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET..=DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET]
+        let further_action_bytes = src
+            [DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET..=DOIP_VEHICLE_ANNOUNCEMENT_ACTION_OFFSET]
             .try_into()
             .expect("If failed, source has been manipulated at runtime.");
 
@@ -147,7 +149,8 @@ impl<const N: usize> Decoder<N> for VehicleAnnouncementMessageCodec {
         // Determine if the sync status byte is present based on payload length
         let expected_payload_length = DOIP_VEHICLE_ANNOUNCEMENT_LEN_LONG;
         let vin_gid_sync = if header.payload_length as usize == expected_payload_length {
-            let bytes = &src[DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET..=DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET];
+            let bytes =
+                &src[DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET..=DOIP_VEHICLE_ANNOUNCEMENT_SYNC_OFFSET];
             Some(SyncStatus::from_bytes(bytes).ok_or(DecodeError::InvalidSyncStatus)?)
         } else {
             None
@@ -294,17 +297,14 @@ impl FromBytes for SyncStatus {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
+    use crate::{Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
-        payload::{ActionCode, DoipPayload, SyncStatus, VehicleAnnouncementMessage},
         message::DoipMessage,
+        payload::{ActionCode, DoipPayload, SyncStatus, VehicleAnnouncementMessage},
     };
-    use heapless::Vec;
 
-    const BUFFER: usize = 4095;
-
-    static SUCCESS_ROOT_NO_SYNC: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT_NO_SYNC: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -321,7 +321,7 @@ mod tests {
         }),
     };
 
-    static SUCCESS_ROOT_WITH_SYNC: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT_WITH_SYNC: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -581,7 +581,7 @@ mod tests {
     #[test]
     fn test_encode_vehicle_announcement_message_vin_no_sync_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT_NO_SYNC.clone(), &mut dst);
 
@@ -599,7 +599,7 @@ mod tests {
     #[test]
     fn test_encode_vehicle_announcement_message_vin_with_sync_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT_WITH_SYNC.clone(), &mut dst);
 
@@ -617,10 +617,10 @@ mod tests {
     #[test]
     fn test_decode_vehicle_announcement_message_vin_no_sync_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT_NO_SYNC.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -634,10 +634,10 @@ mod tests {
     #[test]
     fn test_decode_vehicle_announcement_message_vin_with_sync_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT_WITH_SYNC.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -651,11 +651,11 @@ mod tests {
     #[test]
     fn test_decode_vehicle_announcement_message_vin_with_sync_too_short() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[0x02, 0xfd, 0x00, 0x04, 0x00, 0x00, 0x00, 0x06, 0xff];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -663,15 +663,15 @@ mod tests {
     #[test]
     fn test_decode_vehicle_announcement_message_vin_with_sync_invalid_action_code() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[
             0x02, 0xfd, 0x00, 0x04, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42, 0x00,
         ];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -679,15 +679,15 @@ mod tests {
     #[test]
     fn test_decode_vehicle_announcement_message_vin_with_sync_invalid_sync_status() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[
             0x02, 0xfd, 0x00, 0x04, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42,
         ];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

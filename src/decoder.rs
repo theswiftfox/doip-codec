@@ -1,5 +1,5 @@
 use doip_definitions::{definitions::DOIP_HEADER_LEN, header::PayloadType, message::DoipMessage};
-use heapless::Vec;
+use tokio_util::bytes::Buf;
 
 use crate::{
     doip_message::{
@@ -27,38 +27,42 @@ use crate::{
     Decoder, DoipCodec,
 };
 
-impl<const N: usize> Decoder<N> for DoipCodec<N> {
-    type Item = DoipMessage<N>;
+impl Decoder for DoipCodec {
+    type Item = DoipMessage;
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN {
-            return Err(DecodeError::TooShort);
+            return Ok(None);
         }
 
         let mut h_codec = HeaderCodec {};
 
         let header = h_codec
-            .from_bytes(src)?
+            .decode_from_bytes(src)?
             .expect("Should never return Ok(None)");
 
         let payload = match header.payload_type {
-            PayloadType::GenericNack => GenericNackCodec {}.from_bytes(src)?,
-            PayloadType::VehicleIdentificationRequest => VehIDReqCodec {}.from_bytes(src)?,
-            PayloadType::VehicleIdentificationRequestEid => VehIDReqEidCodec {}.from_bytes(src)?,
-            PayloadType::VehicleIdentificationRequestVin => VehIDReqVinCodec {}.from_bytes(src)?,
-            PayloadType::VehicleAnnouncementMessage => VehAnnMsgCodec {}.from_bytes(src)?,
-            PayloadType::RoutingActivationRequest => RoutActReqCodec {}.from_bytes(src)?,
-            PayloadType::RoutingActivationResponse => RoutActResCodec {}.from_bytes(src)?,
-            PayloadType::AliveCheckRequest => AlivChecReqCodec {}.from_bytes(src)?,
-            PayloadType::AliveCheckResponse => AlivChecResCodec {}.from_bytes(src)?,
-            PayloadType::EntityStatusRequest => EntStatReqCodec {}.from_bytes(src)?,
-            PayloadType::EntityStatusResponse => EntStatResCodec {}.from_bytes(src)?,
-            PayloadType::PowerInformationRequest => PowInfoReqCodec {}.from_bytes(src)?,
-            PayloadType::PowerInformationResponse => PowInfoResCodec {}.from_bytes(src)?,
-            PayloadType::DiagnosticMessage => DiagMsgCodec {}.from_bytes(src)?,
-            PayloadType::DiagnosticMessageAck => DiagMsgAckCodec {}.from_bytes(src)?,
-            PayloadType::DiagnosticMessageNack => DiagMsgNackCodec {}.from_bytes(src)?,
+            PayloadType::GenericNack => GenericNackCodec {}.decode_from_bytes(src)?,
+            PayloadType::VehicleIdentificationRequest => VehIDReqCodec {}.decode_from_bytes(src)?,
+            PayloadType::VehicleIdentificationRequestEid => {
+                VehIDReqEidCodec {}.decode_from_bytes(src)?
+            }
+            PayloadType::VehicleIdentificationRequestVin => {
+                VehIDReqVinCodec {}.decode_from_bytes(src)?
+            }
+            PayloadType::VehicleAnnouncementMessage => VehAnnMsgCodec {}.decode_from_bytes(src)?,
+            PayloadType::RoutingActivationRequest => RoutActReqCodec {}.decode_from_bytes(src)?,
+            PayloadType::RoutingActivationResponse => RoutActResCodec {}.decode_from_bytes(src)?,
+            PayloadType::AliveCheckRequest => AlivChecReqCodec {}.decode_from_bytes(src)?,
+            PayloadType::AliveCheckResponse => AlivChecResCodec {}.decode_from_bytes(src)?,
+            PayloadType::EntityStatusRequest => EntStatReqCodec {}.decode_from_bytes(src)?,
+            PayloadType::EntityStatusResponse => EntStatResCodec {}.decode_from_bytes(src)?,
+            PayloadType::PowerInformationRequest => PowInfoReqCodec {}.decode_from_bytes(src)?,
+            PayloadType::PowerInformationResponse => PowInfoResCodec {}.decode_from_bytes(src)?,
+            PayloadType::DiagnosticMessage => DiagMsgCodec {}.decode_from_bytes(src)?,
+            PayloadType::DiagnosticMessageAck => DiagMsgAckCodec {}.decode_from_bytes(src)?,
+            PayloadType::DiagnosticMessageNack => DiagMsgNackCodec {}.decode_from_bytes(src)?,
         }
         .expect("Should never fail, this means header has been mutated during runtime");
 
@@ -66,21 +70,28 @@ impl<const N: usize> Decoder<N> for DoipCodec<N> {
     }
 }
 
-impl<const N: usize> tokio_util::codec::Decoder for DoipCodec<N> {
-    type Item = DoipMessage<N>;
+impl tokio_util::codec::Decoder for DoipCodec {
+    type Item = DoipMessage;
     type Error = DecodeError;
 
     fn decode(
         &mut self,
         src: &mut tokio_util::bytes::BytesMut,
     ) -> Result<Option<Self::Item>, Self::Error> {
-        let mut heapless_src = heapless::Vec::<u8, N>::new();
-        heapless_src
-            .extend_from_slice(&src)
-            .map_err(|_| DecodeError::BufferTooSmall)?;
+        let mut buff = Vec::<u8>::new();
+        buff.extend_from_slice(src);
 
-        let decoder = DoipCodec {}.from_bytes(&mut heapless_src)?;
+        let decoded = DoipCodec {}.decode_from_bytes(&mut buff);
 
-        Ok(decoder)
+        if let Err(DecodeError::TooShort) = decoded {
+            return Ok(None);
+        }
+
+        let decoded = decoded?.map(|item| {
+            src.advance(item.header.payload_length as usize + DOIP_HEADER_LEN);
+            item
+        });
+
+        Ok(decoded)
     }
 }

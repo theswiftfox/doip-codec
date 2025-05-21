@@ -1,27 +1,25 @@
 use doip_definitions::{
     definitions::{
-        DOIP_HEADER_LEN,
-        DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET, DOIP_ROUTING_ACTIVATION_RES_ENTITY_LEN,
-        DOIP_ROUTING_ACTIVATION_RES_ENTITY_OFFSET, DOIP_ROUTING_ACTIVATION_RES_ISO_LEN,
-        DOIP_ROUTING_ACTIVATION_RES_ISO_OFFSET, DOIP_ROUTING_ACTIVATION_RES_LEN,
-        DOIP_ROUTING_ACTIVATION_RES_TESTER_LEN,
+        DOIP_HEADER_LEN, DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET,
+        DOIP_ROUTING_ACTIVATION_RES_ENTITY_LEN, DOIP_ROUTING_ACTIVATION_RES_ENTITY_OFFSET,
+        DOIP_ROUTING_ACTIVATION_RES_ISO_LEN, DOIP_ROUTING_ACTIVATION_RES_ISO_OFFSET,
+        DOIP_ROUTING_ACTIVATION_RES_LEN, DOIP_ROUTING_ACTIVATION_RES_TESTER_LEN,
     },
     payload::{ActivationCode, DoipPayload, RoutingActivationResponse},
 };
-use heapless::Vec;
 
 use crate::{DecodeError, Decoder, EncodeError, Encoder, FromBytes, ToBytes};
 
 #[derive(Debug)]
 pub struct RoutingActivationResponseCodec;
 
-impl<const N: usize> Encoder<RoutingActivationResponse, N> for RoutingActivationResponseCodec {
+impl Encoder<RoutingActivationResponse> for RoutingActivationResponseCodec {
     type Error = EncodeError;
 
     fn to_bytes(
         &mut self,
         item: RoutingActivationResponse,
-        dst: &mut Vec<u8, N>,
+        dst: &mut Vec<u8>,
     ) -> Result<(), Self::Error> {
         let RoutingActivationResponse {
             logical_address,
@@ -30,14 +28,14 @@ impl<const N: usize> Encoder<RoutingActivationResponse, N> for RoutingActivation
             buffer,
         } = item;
 
-        dst.extend_from_slice(&logical_address).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&logical_address);
 
-        dst.extend_from_slice(&source_address).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&source_address);
 
         let activation_code_bytes = activation_code.to_bytes();
-        dst.extend_from_slice(activation_code_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(activation_code_bytes);
 
-        dst.extend_from_slice(&buffer).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(&buffer);
 
         Ok(())
     }
@@ -84,12 +82,12 @@ impl ToBytes for ActivationCode {
     }
 }
 
-impl<const N: usize> Decoder<N> for RoutingActivationResponseCodec {
-    type Item = DoipPayload<N>;
+impl Decoder for RoutingActivationResponseCodec {
+    type Item = DoipPayload;
 
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_ROUTING_ACTIVATION_RES_LEN {
             return Err(DecodeError::TooShort);
         }
@@ -104,7 +102,8 @@ impl<const N: usize> Decoder<N> for RoutingActivationResponseCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let activation_code_bytes = &src[DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET..=DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET];
+        let activation_code_bytes =
+            &src[DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET..=DOIP_ROUTING_ACTIVATION_RES_CODE_OFFSET];
         let activation_code = ActivationCode::from_bytes(activation_code_bytes)
             .ok_or(DecodeError::InvalidActivationCode)?;
 
@@ -195,16 +194,13 @@ impl FromBytes for ActivationCode {
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
-        payload::{ActivationCode, DoipPayload, RoutingActivationResponse},
         message::DoipMessage,
+        payload::{ActivationCode, DoipPayload, RoutingActivationResponse},
     };
-    use heapless::Vec;
 
-    use crate::{ Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
+    use crate::{Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
 
-    const BUFFER: usize = 4095;
-
-    static SUCCESS_ROOT: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -360,7 +356,7 @@ mod tests {
     #[test]
     fn test_encode_routing_activation_response_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
@@ -377,10 +373,10 @@ mod tests {
     #[test]
     fn test_decode_routing_activation_response_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -394,14 +390,14 @@ mod tests {
     #[test]
     fn test_decode_routing_activation_response_invalid_activation_type() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[
             0x02, 0xfd, 0x00, 0x06, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x42, 0x00,
             0x00, 0x00, 0x00,
         ];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -409,13 +405,13 @@ mod tests {
     #[test]
     fn test_decode_routing_activation_response_too_short() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[
             0x02, 0xfd, 0x00, 0x06, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x10,
         ];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

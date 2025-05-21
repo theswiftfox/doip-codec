@@ -29,8 +29,7 @@ opt-level = 0
 debug = true
 
 [dependencies]
-doip-definitions = { git = "https://github.com/theswiftfox/doip-definitions.git", rev = "0c221fb" }
-heapless = "0.8.0"
+doip-definitions = { git = "https://github.com/theswiftfox/doip-definitions.git", rev = "6cd6d45" }
 thiserror = { version = "2.0.12" }
 tokio = { version = "1.43.0", features = ["net", "io-util"] }
 tokio-util = { version = "0.7.13", features = ["codec"] }

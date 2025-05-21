@@ -5,17 +5,16 @@ use doip_definitions::{
     },
     header::{DoipHeader, PayloadType, ProtocolVersion},
 };
-use heapless::Vec;
 
 use crate::{DecodeError, Decoder, EncodeError, Encoder, FromBytes, ToBytes};
 
 #[derive(Debug)]
 pub struct HeaderCodec;
 
-impl<const N: usize> Encoder<DoipHeader, N> for HeaderCodec {
+impl Encoder<DoipHeader> for HeaderCodec {
     type Error = EncodeError;
 
-    fn to_bytes(&mut self, item: DoipHeader, dst: &mut Vec<u8, N>) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: DoipHeader, dst: &mut Vec<u8>) -> Result<(), Self::Error> {
         let DoipHeader {
             protocol_version,
             inverse_protocol_version,
@@ -32,14 +31,10 @@ impl<const N: usize> Encoder<DoipHeader, N> for HeaderCodec {
             return Err(EncodeError::FailedProtocolValidation);
         }
 
-        dst.extend_from_slice(protocol_version_bytes)
-            .map_err(|()| EncodeError::BufferTooSmall)?;
-        dst.extend_from_slice(inverse_protocol_version_bytes)
-            .map_err(|()| EncodeError::BufferTooSmall)?;
-        dst.extend_from_slice(payload_type_bytes)
-            .map_err(|()| EncodeError::BufferTooSmall)?;
-        dst.extend_from_slice(payload_length_bytes)
-            .map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(protocol_version_bytes);
+        dst.extend_from_slice(inverse_protocol_version_bytes);
+        dst.extend_from_slice(payload_type_bytes);
+        dst.extend_from_slice(payload_length_bytes);
 
         Ok(())
     }
@@ -125,11 +120,11 @@ fn validate_protocol(proto: u8, inv_proto: u8) -> Option<()> {
     }
 }
 
-impl<const N: usize> Decoder<N> for HeaderCodec {
+impl Decoder for HeaderCodec {
     type Item = DoipHeader;
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN {
             return Err(DecodeError::TooShort);
         }
@@ -249,11 +244,10 @@ mod tests {
         message::DoipMessage,
         payload::{DoipPayload, GenericNack, NackCode},
     };
-    use heapless::Vec;
 
     use super::{validate_protocol, HeaderCodec};
 
-    static SUCCESS_ROOT: DoipMessage<4095> = DoipMessage {
+    static SUCCESS_ROOT: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -489,14 +483,20 @@ mod tests {
     #[test]
     fn test_encode_header_success() {
         let mut codec = HeaderCodec {};
-        let mut dst = Vec::<u8, 4095>::new();
-        let mut src = Vec::<u8, 4095>::new();
+        let mut dst = Vec::<u8>::new();
+        let mut src = Vec::<u8>::new();
 
         let bytes = &[0x02, 0x0fd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
-        dst.extend_from_slice(bytes).unwrap();
-        let item = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let item = codec.decode_from_bytes(&mut dst);
 
-        let _ = codec.to_bytes(item.unwrap().unwrap(), &mut src);
+        assert!(item.is_ok());
+        let opt = item.unwrap();
+
+        assert!(opt.is_some());
+        let res = opt.unwrap();
+
+        let _ = codec.to_bytes(res, &mut src);
 
         assert_eq!(*src, *bytes);
     }
@@ -504,7 +504,7 @@ mod tests {
     #[test]
     fn test_encode_header_failed_protocol_validation() {
         let mut codec = HeaderCodec {};
-        let mut src = Vec::<u8, 4095>::new();
+        let mut src = Vec::<u8>::new();
 
         let res = codec.to_bytes(
             DoipHeader {
@@ -522,10 +522,10 @@ mod tests {
     #[test]
     fn test_decode_header_success() {
         let mut codec = HeaderCodec {};
-        let mut dst = Vec::<u8, 4095>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT.header.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -539,11 +539,10 @@ mod tests {
     #[test]
     fn test_decode_header_failed_protocol_validation() {
         let mut codec = HeaderCodec {};
-        let mut dst = Vec::<u8, 4095>::new();
+        let mut dst = Vec::<u8>::new();
 
-        dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00])
-            .unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00]);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -551,11 +550,10 @@ mod tests {
     #[test]
     fn test_decode_header_too_short() {
         let mut codec = HeaderCodec {};
-        let mut dst = Vec::<u8, 4095>::new();
+        let mut dst = Vec::<u8>::new();
 
-        dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00])
-            .unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00]);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -563,11 +561,10 @@ mod tests {
     #[test]
     fn test_decode_header_invalid_protocol() {
         let mut codec = HeaderCodec {};
-        let mut dst = Vec::<u8, 4095>::new();
+        let mut dst = Vec::<u8>::new();
 
-        dst.extend_from_slice(&[0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-            .unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(&[0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -575,11 +572,10 @@ mod tests {
     #[test]
     fn test_decode_header_failed_protocol_check() {
         let mut codec = HeaderCodec {};
-        let mut dst = Vec::<u8, 4095>::new();
+        let mut dst = Vec::<u8>::new();
 
-        dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-            .unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(&[0x02, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -587,11 +583,10 @@ mod tests {
     #[test]
     fn test_decode_header_invalid_payload_type() {
         let mut codec = HeaderCodec {};
-        let mut dst = Vec::<u8, 4095>::new();
+        let mut dst = Vec::<u8>::new();
 
-        dst.extend_from_slice(&[0x02, 0xfd, 0x90, 0x42, 0x00, 0x00, 0x00, 0x00])
-            .unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(&[0x02, 0xfd, 0x90, 0x42, 0x00, 0x00, 0x00, 0x00]);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

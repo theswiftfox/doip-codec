@@ -2,20 +2,19 @@ use doip_definitions::{
     definitions::DOIP_HEADER_LEN,
     payload::{DoipPayload, EntityStatusRequest},
 };
-use heapless::Vec;
 
 use crate::{DecodeError, Decoder, EncodeError, Encoder};
 
 #[derive(Debug)]
 pub struct EntityStatusRequestCodec;
 
-impl<const N: usize> Encoder<EntityStatusRequest, N> for EntityStatusRequestCodec {
+impl Encoder<EntityStatusRequest> for EntityStatusRequestCodec {
     type Error = EncodeError;
 
     fn to_bytes(
         &mut self,
         item: EntityStatusRequest,
-        _dst: &mut Vec<u8, N>,
+        _dst: &mut Vec<u8>,
     ) -> Result<(), Self::Error> {
         let EntityStatusRequest {} = item;
 
@@ -23,12 +22,12 @@ impl<const N: usize> Encoder<EntityStatusRequest, N> for EntityStatusRequestCode
     }
 }
 
-impl<const N: usize> Decoder<N> for EntityStatusRequestCodec {
-    type Item = DoipPayload<N>;
+impl Decoder for EntityStatusRequestCodec {
+    type Item = DoipPayload;
 
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN {
             return Err(DecodeError::TooShort);
         }
@@ -43,19 +42,16 @@ impl<const N: usize> Decoder<N> for EntityStatusRequestCodec {
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
-        payload::{DoipPayload, EntityStatusRequest},
         message::DoipMessage,
+        payload::{DoipPayload, EntityStatusRequest},
     };
-    use heapless::Vec;
 
     use crate::{
-        doip_message::payload::entity_status_request::EntityStatusRequestCodec,
-        Decoder, DoipCodec, Encoder,
+        doip_message::payload::entity_status_request::EntityStatusRequestCodec, Decoder, DoipCodec,
+        Encoder,
     };
 
-    const BUFFER: usize = 4095;
-
-    static SUCCESS_ROOT: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -68,7 +64,7 @@ mod tests {
     #[test]
     fn test_encode_entity_status_request_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
@@ -79,10 +75,10 @@ mod tests {
     #[test]
     fn test_decode_entity_status_request_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -96,11 +92,11 @@ mod tests {
     #[test]
     fn test_decode_entity_status_request_too_short() {
         let mut codec = EntityStatusRequestCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[0x02, 0xfd, 0x40, 0x01, 0x00, 0x00, 0x00];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }

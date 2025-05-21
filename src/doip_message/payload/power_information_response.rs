@@ -2,25 +2,24 @@ use doip_definitions::{
     definitions::{DOIP_HEADER_LEN, DOIP_POWER_MODE_LEN},
     payload::{DoipPayload, PowerInformationResponse, PowerMode},
 };
-use heapless::Vec;
 
 use crate::{DecodeError, Decoder, EncodeError, Encoder, FromBytes, ToBytes};
 
 #[derive(Debug)]
 pub struct PowerInformationResponseCodec;
 
-impl<const N: usize> Encoder<PowerInformationResponse, N> for PowerInformationResponseCodec {
+impl Encoder<PowerInformationResponse> for PowerInformationResponseCodec {
     type Error = EncodeError;
 
     fn to_bytes(
         &mut self,
         item: PowerInformationResponse,
-        dst: &mut Vec<u8, N>,
+        dst: &mut Vec<u8>,
     ) -> Result<(), Self::Error> {
         let PowerInformationResponse { power_mode } = item;
 
         let power_mode_bytes = power_mode.to_bytes();
-        dst.extend_from_slice(power_mode_bytes).map_err(|()| EncodeError::BufferTooSmall)?;
+        dst.extend_from_slice(power_mode_bytes);
 
         Ok(())
     }
@@ -36,12 +35,12 @@ impl ToBytes for PowerMode {
     }
 }
 
-impl<const N: usize> Decoder<N> for PowerInformationResponseCodec {
-    type Item = DoipPayload<N>;
+impl Decoder for PowerInformationResponseCodec {
+    type Item = DoipPayload;
 
     type Error = DecodeError;
 
-    fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_POWER_MODE_LEN {
             return Err(DecodeError::TooShort);
         }
@@ -76,15 +75,13 @@ impl FromBytes for PowerMode {
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
-        payload::{DoipPayload, PowerInformationResponse, PowerMode},
         message::DoipMessage,
+        payload::{DoipPayload, PowerInformationResponse, PowerMode},
     };
-    use heapless::Vec;
 
-    use crate::{ Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
+    use crate::{Decoder, DoipCodec, Encoder, FromBytes, ToBytes};
 
-    const BUFFER: usize = 4095;
-    static SUCCESS_ROOT: DoipMessage<BUFFER> = DoipMessage {
+    static SUCCESS_ROOT: DoipMessage = DoipMessage {
         header: DoipHeader {
             protocol_version: ProtocolVersion::Iso13400_2012,
             inverse_protocol_version: 0xfd,
@@ -135,7 +132,7 @@ mod tests {
     #[test]
     fn test_encode_power_information_response_success() {
         let mut encoder = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
@@ -146,10 +143,10 @@ mod tests {
     #[test]
     fn test_decode_power_information_response_success() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let _ = codec.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
-        let msg = codec.from_bytes(&mut dst);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_ok());
         let opt = msg.unwrap();
@@ -163,11 +160,11 @@ mod tests {
     #[test]
     fn test_decode_power_information_response_invalid_power_mode() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[0x02, 0xfd, 0x40, 0x04, 0x00, 0x00, 0x00, 0x01, 0x42];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
@@ -175,11 +172,11 @@ mod tests {
     #[test]
     fn test_decode_power_information_response_too_short() {
         let mut codec = DoipCodec {};
-        let mut dst = Vec::<u8, BUFFER>::new();
+        let mut dst = Vec::<u8>::new();
 
         let bytes = &[0x02, 0xfd, 0x40, 0x04, 0x00, 0x00, 0x00, 0x01];
-        dst.extend_from_slice(bytes).unwrap();
-        let msg = codec.from_bytes(&mut dst);
+        dst.extend_from_slice(bytes);
+        let msg = codec.decode_from_bytes(&mut dst);
 
         assert!(msg.is_err());
     }
