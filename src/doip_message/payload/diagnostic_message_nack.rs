@@ -81,7 +81,7 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageNackCodec {
                 + DOIP_DIAG_MESSAGE_NACK_CODE_LEN
         {
             return Err(DecodeError::TooShort);
-        };
+        }
 
         let source_address = src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_DIAG_COMMON_SOURCE_LEN]
             .try_into()
@@ -152,7 +152,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DiagnosticMessageNack, DiagnosticNackCode, DoipPayload},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -205,42 +205,42 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::ReservedByIso13400_00)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::ReservedByIso13400_00);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::ReservedByIso13400_01)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::ReservedByIso13400_01);
                 }
                 0x02 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::InvalidSourceAddress)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::InvalidSourceAddress);
                 }
                 0x03 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::UnknownTargetAddress)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::UnknownTargetAddress);
                 }
                 0x04 => {
                     assert!(proto.is_some());
                     assert_eq!(
                         proto.unwrap(),
                         DiagnosticNackCode::DiagnosticMessageTooLarge
-                    )
+                    );
                 }
                 0x05 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::OutOfMemory)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::OutOfMemory);
                 }
                 0x06 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::TargetUnreachable)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::TargetUnreachable);
                 }
                 0x07 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::UnknownNetwork)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::UnknownNetwork);
                 }
                 0x08 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticNackCode::TransportProtocolError)
+                    assert_eq!(proto.unwrap(), DiagnosticNackCode::TransportProtocolError);
                 }
                 _ => assert!(proto.is_none()),
             }
@@ -275,7 +275,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

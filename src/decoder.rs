@@ -1,4 +1,4 @@
-use doip_definitions::{definitions::DOIP_HEADER_LEN, header::PayloadType, DoipMessage};
+use doip_definitions::{definitions::DOIP_HEADER_LEN, header::PayloadType, message::DoipMessage};
 use heapless::Vec;
 
 use crate::{
@@ -66,7 +66,6 @@ impl<const N: usize> Decoder<N> for DoipCodec<N> {
     }
 }
 
-#[cfg(feature = "std")]
 impl<const N: usize> tokio_util::codec::Decoder for DoipCodec<N> {
     type Item = DoipMessage<N>;
     type Error = DecodeError;

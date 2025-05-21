@@ -46,7 +46,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DoipPayload, VehicleIdentificationRequest},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -75,7 +75,7 @@ mod tests {
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
         assert!(bytes.is_ok(), "Expected bytes to be ok.");
-        assert_eq!(*dst, [0x02, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00])
+        assert_eq!(*dst, [0x02, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
     }
 
     #[test]
@@ -91,7 +91,7 @@ mod tests {
 
         assert!(opt.is_some());
         let res = opt.unwrap();
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

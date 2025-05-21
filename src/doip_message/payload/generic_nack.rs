@@ -85,7 +85,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DoipPayload, GenericNack, NackCode},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
     const BUFFER: usize = 4095;
@@ -116,7 +116,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]
@@ -151,7 +151,7 @@ mod tests {
         let bytes = encoder.to_bytes(SUCCESS_ROOT.clone(), &mut dst);
 
         assert!(bytes.is_ok(), "Expected bytes to be ok.");
-        assert_eq!(*dst, [0x02, 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02])
+        assert_eq!(*dst, [0x02, 0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02]);
     }
 
     #[test]
@@ -177,26 +177,26 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), NackCode::IncorrectPatternFormat)
+                    assert_eq!(proto.unwrap(), NackCode::IncorrectPatternFormat);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), NackCode::UnknownPayloadType)
+                    assert_eq!(proto.unwrap(), NackCode::UnknownPayloadType);
                 }
                 0x02 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), NackCode::MessageTooLarge)
+                    assert_eq!(proto.unwrap(), NackCode::MessageTooLarge);
                 }
                 0x03 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), NackCode::OutOfMemory)
+                    assert_eq!(proto.unwrap(), NackCode::OutOfMemory);
                 }
                 0x04 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), NackCode::InvalidPayloadLength)
+                    assert_eq!(proto.unwrap(), NackCode::InvalidPayloadLength);
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }

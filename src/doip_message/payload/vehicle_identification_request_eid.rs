@@ -52,7 +52,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DoipPayload, VehicleIdentificationRequestEid},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -83,7 +83,7 @@ mod tests {
         assert_eq!(
             *dst,
             [0x02, 0xfd, 0x00, 0x02, 0x00, 0x00, 0x00, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]
-        )
+        );
     }
 
     #[test]
@@ -100,7 +100,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

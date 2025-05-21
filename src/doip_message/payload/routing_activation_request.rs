@@ -57,7 +57,7 @@ impl<const N: usize> Decoder<N> for RoutingActivationRequestCodec {
     fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_ROUTING_ACTIVATION_REQ_LEN {
             return Err(DecodeError::TooShort);
-        };
+        }
 
         let source_address = src
             [DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_ROUTING_ACTIVATION_REQ_SRC_LEN]
@@ -107,7 +107,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{ActivationType, DoipPayload, RoutingActivationRequest},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -147,18 +147,18 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationType::Default)
+                    assert_eq!(proto.unwrap(), ActivationType::Default);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationType::WwhObd)
+                    assert_eq!(proto.unwrap(), ActivationType::WwhObd);
                 }
                 0x02 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationType::CentralSecurity)
+                    assert_eq!(proto.unwrap(), ActivationType::CentralSecurity);
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }
@@ -178,7 +178,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]
@@ -195,7 +195,7 @@ mod tests {
                 0x02, 0xfd, 0x00, 0x05, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00
             ]
-        )
+        );
     }
 
     #[test]

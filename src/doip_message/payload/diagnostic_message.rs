@@ -44,7 +44,7 @@ impl<const N: usize> Decoder<N> for DiagnosticMessageCodec {
     fn from_bytes(&mut self, src: &mut Vec<u8, N>) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_DIAG_COMMON_SOURCE_LEN + DOIP_DIAG_COMMON_TARGET_LEN {
             return Err(DecodeError::TooShort);
-        };
+        }
 
         let mut h_codec = HeaderCodec {};
         let header = h_codec.from_bytes(src)?.expect("Should never return Ok(None)");

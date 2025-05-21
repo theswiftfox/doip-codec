@@ -94,7 +94,7 @@ impl<const N: usize> Encoder<DoipPayload<N>, N> for PayloadCodec {
             DoipPayload::DiagnosticMessageNack(diagnostic_message_nack) => {
                 DiagnosticMessageNackCodec {}.to_bytes(diagnostic_message_nack, dst)?;
             }
-        };
+        }
         Ok(())
     }
 }

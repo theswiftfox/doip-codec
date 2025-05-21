@@ -44,7 +44,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DoipPayload, PowerInformationRequest},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -89,7 +89,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

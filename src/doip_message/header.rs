@@ -246,8 +246,8 @@ mod tests {
     use crate::{Decoder, Encoder, FromBytes, ToBytes};
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
+        message::DoipMessage,
         payload::{DoipPayload, GenericNack, NackCode},
-        DoipMessage,
     };
     use heapless::Vec;
 
@@ -325,7 +325,7 @@ mod tests {
             match a {
                 0xff => assert!(validate.is_some(), "Expected validation to succeed"),
                 _ => assert!(validate.is_none(), "Expected validation to fail"),
-            };
+            }
         }
         for a in u8::MIN..=u8::MAX {
             let proto = ProtocolVersion::Iso13400_2010.to_bytes()[0];
@@ -333,7 +333,7 @@ mod tests {
             match a {
                 0xfe => assert!(validate.is_some(), "Expected validation to succeed"),
                 _ => assert!(validate.is_none(), "Expected validation to fail"),
-            };
+            }
         }
         for a in u8::MIN..=u8::MAX {
             let proto = ProtocolVersion::Iso13400_2012.to_bytes()[0];
@@ -341,7 +341,7 @@ mod tests {
             match a {
                 0xfd => assert!(validate.is_some(), "Expected validation to succeed"),
                 _ => assert!(validate.is_none(), "Expected validation to fail"),
-            };
+            }
         }
         for a in u8::MIN..=u8::MAX {
             let proto = ProtocolVersion::Iso13400_2019.to_bytes()[0];
@@ -349,7 +349,7 @@ mod tests {
             match a {
                 0xfc => assert!(validate.is_some(), "Expected validation to succeed"),
                 _ => assert!(validate.is_none(), "Expected validation to fail"),
-            };
+            }
         }
         for a in u8::MIN..=u8::MAX {
             let proto = ProtocolVersion::Iso13400_2019Amd1.to_bytes()[0];
@@ -357,7 +357,7 @@ mod tests {
             match a {
                 0xfb => assert!(validate.is_some(), "Expected validation to succeed"),
                 _ => assert!(validate.is_none(), "Expected validation to fail"),
-            };
+            }
         }
         for a in u8::MIN..=u8::MAX {
             let proto = ProtocolVersion::DefaultValue.to_bytes()[0];
@@ -365,7 +365,7 @@ mod tests {
             match a {
                 0x00 => assert!(validate.is_some(), "Expected validation to succeed"),
                 _ => assert!(validate.is_none(), "Expected validation to fail"),
-            };
+            }
         }
     }
 
@@ -378,30 +378,30 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ProtocolVersion::ReservedVer)
+                    assert_eq!(proto.unwrap(), ProtocolVersion::ReservedVer);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2010)
+                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2010);
                 }
                 0x02 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2012)
+                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2012);
                 }
                 0x03 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2019)
+                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2019);
                 }
                 0x04 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2019Amd1)
+                    assert_eq!(proto.unwrap(), ProtocolVersion::Iso13400_2019Amd1);
                 }
                 0xff => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ProtocolVersion::DefaultValue)
+                    assert_eq!(proto.unwrap(), ProtocolVersion::DefaultValue);
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }
@@ -417,70 +417,70 @@ mod tests {
             match [a, b] {
                 [0x00, 0x00] => {
                     assert!(proto.is_some(), "{:?} | {:?}", proto, [a, b]);
-                    assert_eq!(proto.unwrap(), PayloadType::GenericNack)
+                    assert_eq!(proto.unwrap(), PayloadType::GenericNack);
                 }
                 [0x00, 0x01] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::VehicleIdentificationRequest)
+                    assert_eq!(proto.unwrap(), PayloadType::VehicleIdentificationRequest);
                 }
                 [0x00, 0x02] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::VehicleIdentificationRequestEid)
+                    assert_eq!(proto.unwrap(), PayloadType::VehicleIdentificationRequestEid);
                 }
                 [0x00, 0x03] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::VehicleIdentificationRequestVin)
+                    assert_eq!(proto.unwrap(), PayloadType::VehicleIdentificationRequestVin);
                 }
                 [0x00, 0x04] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::VehicleAnnouncementMessage)
+                    assert_eq!(proto.unwrap(), PayloadType::VehicleAnnouncementMessage);
                 }
                 [0x00, 0x05] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::RoutingActivationRequest)
+                    assert_eq!(proto.unwrap(), PayloadType::RoutingActivationRequest);
                 }
                 [0x00, 0x06] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::RoutingActivationResponse)
+                    assert_eq!(proto.unwrap(), PayloadType::RoutingActivationResponse);
                 }
                 [0x00, 0x07] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::AliveCheckRequest)
+                    assert_eq!(proto.unwrap(), PayloadType::AliveCheckRequest);
                 }
                 [0x00, 0x08] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::AliveCheckResponse)
+                    assert_eq!(proto.unwrap(), PayloadType::AliveCheckResponse);
                 }
                 [0x40, 0x01] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::EntityStatusRequest)
+                    assert_eq!(proto.unwrap(), PayloadType::EntityStatusRequest);
                 }
                 [0x40, 0x02] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::EntityStatusResponse)
+                    assert_eq!(proto.unwrap(), PayloadType::EntityStatusResponse);
                 }
                 [0x40, 0x03] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::PowerInformationRequest)
+                    assert_eq!(proto.unwrap(), PayloadType::PowerInformationRequest);
                 }
                 [0x40, 0x04] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::PowerInformationResponse)
+                    assert_eq!(proto.unwrap(), PayloadType::PowerInformationResponse);
                 }
                 [0x80, 0x01] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::DiagnosticMessage)
+                    assert_eq!(proto.unwrap(), PayloadType::DiagnosticMessage);
                 }
                 [0x80, 0x02] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::DiagnosticMessageAck)
+                    assert_eq!(proto.unwrap(), PayloadType::DiagnosticMessageAck);
                 }
                 [0x80, 0x03] => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), PayloadType::DiagnosticMessageNack)
+                    assert_eq!(proto.unwrap(), PayloadType::DiagnosticMessageNack);
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }
@@ -498,7 +498,7 @@ mod tests {
 
         let _ = codec.to_bytes(item.unwrap().unwrap(), &mut src);
 
-        assert_eq!(*src, *bytes)
+        assert_eq!(*src, *bytes);
     }
 
     #[test]
@@ -533,7 +533,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT.header)
+        assert_eq!(res, SUCCESS_ROOT.header);
     }
 
     #[test]

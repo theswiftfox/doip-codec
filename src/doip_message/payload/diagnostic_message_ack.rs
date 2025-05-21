@@ -107,7 +107,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DiagnosticAckCode, DiagnosticMessageAck, DoipPayload},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -144,7 +144,7 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), DiagnosticAckCode::Acknowledged)
+                    assert_eq!(proto.unwrap(), DiagnosticAckCode::Acknowledged);
                 }
                 _ => assert!(proto.is_none()),
             }
@@ -179,7 +179,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

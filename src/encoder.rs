@@ -1,4 +1,4 @@
-use doip_definitions::{header::PayloadType, payload::DoipPayload, DoipMessage};
+use doip_definitions::{header::PayloadType, message::DoipMessage, payload::DoipPayload};
 use heapless::Vec;
 
 use crate::{
@@ -90,7 +90,6 @@ fn validate_payload_length(header_len: usize, length: usize) -> Result<(), Encod
     Ok(())
 }
 
-#[cfg(feature = "std")]
 impl<const N: usize> tokio_util::codec::Encoder<DoipMessage<N>> for DoipCodec<N> {
     type Error = EncodeError;
 
@@ -113,8 +112,8 @@ impl<const N: usize> tokio_util::codec::Encoder<DoipMessage<N>> for DoipCodec<N>
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
+        message::DoipMessage,
         payload::{AliveCheckRequest, DoipPayload, GenericNack, NackCode},
-        DoipMessage,
     };
 
     use crate::encoder::validate_payload_length;

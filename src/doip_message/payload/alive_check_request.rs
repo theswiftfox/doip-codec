@@ -41,8 +41,8 @@ impl<const N: usize> Decoder<N> for AliveCheckRequestCodec {
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
+        message::DoipMessage,
         payload::{AliveCheckRequest, DoipPayload},
-        DoipMessage,
     };
     use heapless::Vec;
 
@@ -88,7 +88,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

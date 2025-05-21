@@ -1,4 +1,3 @@
-#[cfg(feature = "std")]
 use std::io;
 
 /// A wrapper to encapsulate Parser and IO errors which can occur
@@ -82,7 +81,6 @@ pub enum DecodeError {
 
     /// IO error from Stream
     #[error("Underlying I/O Error: {0}")]
-    #[cfg(feature = "std")]
     IOError(#[from] io::Error),
 
     /// buffer is too small
@@ -111,6 +109,5 @@ pub enum EncodeError {
 
     /// IO error from Stream
     #[error("Underlying I/O Error: {0}")]
-    #[cfg(feature = "std")]
     IOError(#[from] io::Error),
 }

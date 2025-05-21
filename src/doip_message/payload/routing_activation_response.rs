@@ -196,7 +196,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{ActivationCode, DoipPayload, RoutingActivationResponse},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -268,90 +268,90 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::DeniedUnknownSourceAddress)
+                    assert_eq!(proto.unwrap(), ActivationCode::DeniedUnknownSourceAddress);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::DeniedTCPSocketsFull)
+                    assert_eq!(proto.unwrap(), ActivationCode::DeniedTCPSocketsFull);
                 }
                 0x02 => {
                     assert!(proto.is_some());
                     assert_eq!(
                         proto.unwrap(),
                         ActivationCode::DeniedTCPSocketAlreadyConnected
-                    )
+                    );
                 }
                 0x03 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::DeniedSourceIsAlreadyActive)
+                    assert_eq!(proto.unwrap(), ActivationCode::DeniedSourceIsAlreadyActive);
                 }
                 0x04 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::DeniedMissingAuthentication)
+                    assert_eq!(proto.unwrap(), ActivationCode::DeniedMissingAuthentication);
                 }
                 0x05 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::DeniedRejectedConfirmation)
+                    assert_eq!(proto.unwrap(), ActivationCode::DeniedRejectedConfirmation);
                 }
                 0x06 => {
                     assert!(proto.is_some());
                     assert_eq!(
                         proto.unwrap(),
                         ActivationCode::DeniedUnsupportedRoutingActivationType
-                    )
+                    );
                 }
                 0x07 => {
                     assert!(proto.is_some());
                     assert_eq!(
                         proto.unwrap(),
                         ActivationCode::DeniedRequestEncryptedTLSConnection
-                    )
+                    );
                 }
                 0x08 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_08)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_08);
                 }
                 0x09 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_09)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_09);
                 }
                 0x0a => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0A)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0A);
                 }
                 0x0b => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0B)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0B);
                 }
                 0x0c => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0C)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0C);
                 }
                 0x0d => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0D)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0D);
                 }
                 0x0e => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0E)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0E);
                 }
                 0x0f => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0F)
+                    assert_eq!(proto.unwrap(), ActivationCode::ReservedByIso13400_0F);
                 }
                 0x10 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActivationCode::SuccessfullyActivated)
+                    assert_eq!(proto.unwrap(), ActivationCode::SuccessfullyActivated);
                 }
                 0x11 => {
                     assert!(proto.is_some());
                     assert_eq!(
                         proto.unwrap(),
                         ActivationCode::ActivatedConfirmationRequired
-                    )
+                    );
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }
@@ -371,7 +371,7 @@ mod tests {
                 0x02, 0xfd, 0x00, 0x06, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
                 0x00, 0x00, 0x00
             ]
-        )
+        );
     }
 
     #[test]
@@ -388,7 +388,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

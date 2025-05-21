@@ -298,7 +298,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{ActionCode, DoipPayload, SyncStatus, VehicleAnnouncementMessage},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -423,74 +423,74 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::NoFurtherActionRequired)
+                    assert_eq!(proto.unwrap(), ActionCode::NoFurtherActionRequired);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_01)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_01);
                 }
                 0x02 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_02)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_02);
                 }
                 0x03 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_03)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_03);
                 }
                 0x04 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_04)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_04);
                 }
                 0x05 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_05)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_05);
                 }
                 0x06 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_06)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_06);
                 }
                 0x07 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_07)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_07);
                 }
                 0x08 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_08)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_08);
                 }
                 0x09 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_09)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_09);
                 }
                 0x0a => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0A)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0A);
                 }
                 0x0b => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0B)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0B);
                 }
                 0x0c => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0C)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0C);
                 }
                 0x0d => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0D)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0D);
                 }
                 0x0e => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0E)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0E);
                 }
                 0x0f => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0F)
+                    assert_eq!(proto.unwrap(), ActionCode::ReservedByIso13400_0F);
                 }
                 0x10 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), ActionCode::RoutingActivationRequired)
+                    assert_eq!(proto.unwrap(), ActionCode::RoutingActivationRequired);
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }
@@ -505,74 +505,74 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::VinGidSynchronized)
+                    assert_eq!(proto.unwrap(), SyncStatus::VinGidSynchronized);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_01)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_01);
                 }
                 0x02 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_02)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_02);
                 }
                 0x03 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_03)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_03);
                 }
                 0x04 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_04)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_04);
                 }
                 0x05 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_05)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_05);
                 }
                 0x06 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_06)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_06);
                 }
                 0x07 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_07)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_07);
                 }
                 0x08 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_08)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_08);
                 }
                 0x09 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_09)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_09);
                 }
                 0x0a => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0A)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0A);
                 }
                 0x0b => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0B)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0B);
                 }
                 0x0c => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0C)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0C);
                 }
                 0x0d => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0D)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0D);
                 }
                 0x0e => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0E)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0E);
                 }
                 0x0f => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0F)
+                    assert_eq!(proto.unwrap(), SyncStatus::ReservedByIso13400_0F);
                 }
                 0x10 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), SyncStatus::VinGidNotSynchronised)
+                    assert_eq!(proto.unwrap(), SyncStatus::VinGidNotSynchronised);
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }
@@ -628,7 +628,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT_NO_SYNC)
+        assert_eq!(res, SUCCESS_ROOT_NO_SYNC);
     }
 
     #[test]
@@ -645,7 +645,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT_WITH_SYNC)
+        assert_eq!(res, SUCCESS_ROOT_WITH_SYNC);
     }
 
     #[test]

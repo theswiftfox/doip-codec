@@ -111,7 +111,7 @@ mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
         payload::{DoipPayload, EntityStatusResponse, NodeType},
-        DoipMessage,
+        message::DoipMessage,
     };
     use heapless::Vec;
 
@@ -150,14 +150,14 @@ mod tests {
             match a {
                 0x00 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), NodeType::DoipGateway)
+                    assert_eq!(proto.unwrap(), NodeType::DoipGateway);
                 }
                 0x01 => {
                     assert!(proto.is_some());
-                    assert_eq!(proto.unwrap(), NodeType::DoipNode)
+                    assert_eq!(proto.unwrap(), NodeType::DoipNode);
                 }
                 _ => {
-                    assert!(proto.is_none())
+                    assert!(proto.is_none());
                 }
             }
         }
@@ -194,7 +194,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]

@@ -52,12 +52,12 @@ impl<const N: usize> Decoder<N> for VehicleIdentificationRequestVinCodec {
 mod tests {
     use doip_definitions::{
         header::{DoipHeader, PayloadType, ProtocolVersion},
+        message::DoipMessage,
         payload::{DoipPayload, VehicleIdentificationRequestVin},
-        DoipMessage,
     };
     use heapless::Vec;
 
-    use crate::{ Decoder, DoipCodec, Encoder};
+    use crate::{Decoder, DoipCodec, Encoder};
 
     const BUFFER: usize = 4095;
 
@@ -87,7 +87,7 @@ mod tests {
                 0x02, 0xfd, 0x00, 0x03, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
             ]
-        )
+        );
     }
 
     #[test]
@@ -104,7 +104,7 @@ mod tests {
         assert!(opt.is_some());
         let res = opt.unwrap();
 
-        assert_eq!(res, SUCCESS_ROOT)
+        assert_eq!(res, SUCCESS_ROOT);
     }
 
     #[test]
