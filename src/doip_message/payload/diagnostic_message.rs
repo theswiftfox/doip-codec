@@ -56,8 +56,8 @@ impl Decoder for DiagnosticMessageCodec {
             .try_into()
             .expect("If failed, source has been manupulated at runtime.");
 
-        let message = if header.payload_length as usize > BASE_MSG_LEN {
-            let data_size = header.payload_length as usize - BASE_MSG_LEN;
+        let data_size = header.payload_length as usize - BASE_MSG_LEN;
+        let message = if src.len() >= DOIP_DIAG_MESSAGE_DATA_OFFSET + data_size {
             src[DOIP_DIAG_MESSAGE_DATA_OFFSET..DOIP_DIAG_MESSAGE_DATA_OFFSET + data_size].to_vec()
         } else {
             vec![]
