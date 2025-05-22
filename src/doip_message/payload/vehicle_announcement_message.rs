@@ -108,7 +108,7 @@ impl Decoder for VehicleAnnouncementMessageCodec {
 
     type Error = DecodeError;
 
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_VEHICLE_ANNOUNCEMENT_LEN_SHORT {
             return Err(DecodeError::TooShort);
         }

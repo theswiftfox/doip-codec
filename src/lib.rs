@@ -35,7 +35,7 @@ pub trait Decoder {
     type Error: From<DecodeError>;
 
     /// Attempts to decode a frame from the provided buffer of bytes.
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error>;
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error>;
 }
 
 /// Encoder trait to encode runtime or compile time messages for diagnsotic applications into streamable

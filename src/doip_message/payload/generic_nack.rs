@@ -39,11 +39,15 @@ impl Decoder for GenericNackCodec {
 
     type Error = DecodeError;
 
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_GENERIC_NACK_LEN {
             return Err(DecodeError::TooShort);
         }
 
+        // Contrary to clippys opinion, using an inclusive range in this case is harder to read
+        // as it would require that the reader already knows that the size of DOIP_GENERIC_NACK_LEN
+        // is 1 byte.
+        #[allow(clippy::range_plus_one)]
         let nack_code_bytes = &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + DOIP_GENERIC_NACK_LEN];
 
         let nack_code =

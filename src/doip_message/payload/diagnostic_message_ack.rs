@@ -49,7 +49,7 @@ impl Decoder for DiagnosticMessageAckCodec {
 
     type Error = DecodeError;
 
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error> {
         const MSG_LEN: usize = DOIP_DIAG_COMMON_SOURCE_LEN
             + DOIP_DIAG_COMMON_TARGET_LEN
             + DOIP_DIAG_MESSAGE_ACK_CODE_LEN;

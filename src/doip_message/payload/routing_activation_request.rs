@@ -15,11 +15,7 @@ pub struct RoutingActivationRequestCodec;
 impl Encoder<RoutingActivationRequest> for RoutingActivationRequestCodec {
     type Error = EncodeError;
 
-    fn to_bytes(
-        &mut self,
-        item: RoutingActivationRequest,
-        dst: &mut Vec<u8>,
-    ) -> Result<(), Self::Error> {
+    fn to_bytes(&mut self, item: RoutingActivationRequest, dst: &mut Vec<u8>) -> Result<(), Self::Error> {
         let RoutingActivationRequest {
             source_address,
             activation_type,
@@ -52,7 +48,7 @@ impl Decoder for RoutingActivationRequestCodec {
 
     type Error = DecodeError;
 
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_ROUTING_ACTIVATION_REQ_LEN {
             return Err(DecodeError::TooShort);
         }

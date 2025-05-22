@@ -31,7 +31,7 @@ impl Decoder for DoipCodec {
     type Item = DoipMessage;
     type Error = DecodeError;
 
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN {
             return Ok(None);
         }
@@ -78,18 +78,14 @@ impl tokio_util::codec::Decoder for DoipCodec {
         &mut self,
         src: &mut tokio_util::bytes::BytesMut,
     ) -> Result<Option<Self::Item>, Self::Error> {
-        let mut buff = Vec::<u8>::new();
-        buff.extend_from_slice(src);
-
-        let decoded = DoipCodec {}.decode_from_bytes(&mut buff);
+        let decoded = DoipCodec {}.decode_from_bytes(src);
 
         if let Err(DecodeError::TooShort) = decoded {
             return Ok(None);
         }
 
-        let decoded = decoded?.map(|item| {
+        let decoded = decoded?.inspect(|item| {
             src.advance(item.header.payload_length as usize + DOIP_HEADER_LEN);
-            item
         });
 
         Ok(decoded)

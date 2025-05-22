@@ -36,7 +36,7 @@ impl Decoder for DiagnosticMessageCodec {
 
     type Error = DecodeError;
 
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error> {
         const BASE_MSG_LEN: usize = DOIP_DIAG_COMMON_SOURCE_LEN + DOIP_DIAG_COMMON_TARGET_LEN;
         if src.len() < DOIP_HEADER_LEN + BASE_MSG_LEN {
             return Err(DecodeError::TooShort);

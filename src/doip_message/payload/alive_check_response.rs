@@ -25,7 +25,7 @@ impl Decoder for AliveCheckResponseCodec {
 
     type Error = DecodeError;
 
-    fn decode_from_bytes(&mut self, src: &mut Vec<u8>) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode_from_bytes(&mut self, src: &[u8]) -> Result<Option<Self::Item>, Self::Error> {
         if src.len() < DOIP_HEADER_LEN + DOIP_ALIVE_CHECK_RESPONSE_SOURCE_LEN {
             return Err(DecodeError::TooShort);
         }
