@@ -29,19 +29,19 @@ opt-level = 0
 debug = true
 
 [dependencies]
-doip-definitions = { version = "3.0.4" }
+derive_more = { version = "2.0.1", features = ["from"] }
+doip-definitions = { version = "3.0.11", default-features = false }
 heapless = "0.8.0"
-thiserror = { version = "2.0.12" }
-pyo3 = { version = "0.23.5", features = [
+pyo3 = { version = "0.24.2", features = [
   "abi3-py311",
   "extension-module",
 ], optional = true }
-tokio = { version = "1.43.0", features = ["net", "io-util"] }
-tokio-util = { version = "0.7.13", features = ["codec"] }
+tokio = { version = "1.45.0", features = ["net", "io-util"] }
+tokio-util = { version = "0.7.15", features = ["codec"] }
 
 [dev-dependencies]
 futures = "0.3.31"
-doip-definitions = { version = "3.0.4" }
+doip-definitions = { version = "3.0.7" }
 
 [lib]
 name = "doip_codec"
@@ -49,4 +49,16 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["std"]
-std = ["pyo3"]    # Enable std and pyo3 when building for Python
+std = [
+  "pyo3",
+  "doip-definitions/std",
+] # Enable std and pyo3 when building for Python
+
+[package.metadata]
+rust-analyzer = { checkOnSave.extraArgs = [
+  "--check-cfg",
+  "cfg(rust_analyzer)",
+] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(rust_analyzer)"] }
