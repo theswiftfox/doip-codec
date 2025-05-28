@@ -29,8 +29,8 @@ opt-level = 0
 debug = true
 
 [dependencies]
-doip-definitions = { version = "3.0.7" }
 derive_more = { version = "2.0.1", features = ["from"] }
+doip-definitions = { version = "3.0.11", default-features = false }
 heapless = "0.8.0"
 pyo3 = { version = "0.24.2", features = [
   "abi3-py311",
@@ -49,7 +49,10 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["std"]
-std = ["pyo3"]    # Enable std and pyo3 when building for Python
+std = [
+  "pyo3",
+  "doip-definitions/std",
+] # Enable std and pyo3 when building for Python
 
 [package.metadata]
 rust-analyzer = { checkOnSave.extraArgs = [

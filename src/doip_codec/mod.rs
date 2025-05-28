@@ -1,3 +1,6 @@
+mod decoder;
+mod encoder;
+
 // region:      --- no_std
 
 /// A simple Decoder and Encoder implementation for Diagnostics over Internet
@@ -20,6 +23,7 @@ pub struct DoipCodec<const N: usize> {}
 /// utilised during.
 #[cfg(feature = "std")]
 #[derive(Debug)]
+#[pyo3::pyclass]
 pub struct DoipCodec {}
 
 // endregion:   --- std
