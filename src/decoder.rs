@@ -85,9 +85,36 @@ impl tokio_util::codec::Decoder for DoipCodec {
         }
 
         let decoded = decoded?.inspect(|item| {
-            src.advance(item.header.payload_length as usize + DOIP_HEADER_LEN);
+            let decoded_length = item.header.payload_length as usize + DOIP_HEADER_LEN;
+            let advance_length = if src.remaining() >= decoded_length {
+                decoded_length
+            } else {
+                src.len()
+            };
+            src.advance(advance_length);
         });
 
         Ok(decoded)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio_util::codec::Decoder;
+
+    #[test]
+    fn test_decode() {
+        let payload = vec![
+            0x02, 0xfd, 0x80, 0x01, 0x00, 0x00, 0x00, 0x0b, 0x11, 0x06, 0x0f, 0x0d, 0x6a, 0xf0,
+            0x00, 0x00, 0x00, 0x00, 0x01,
+        ];
+        let mut codec = super::DoipCodec {};
+        let mut bytes = tokio_util::bytes::BytesMut::from(payload.as_slice());
+        let result = codec.decode(&mut bytes);
+        assert!(result.is_ok());
+
+        let mut bytes_incomplete = tokio_util::bytes::BytesMut::from(&payload[..12]);
+        let result_incomplete = codec.decode(&mut bytes_incomplete);
+        assert!(result_incomplete.is_ok());
     }
 }
