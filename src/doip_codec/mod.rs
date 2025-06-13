@@ -23,7 +23,7 @@ pub struct DoipCodec<const N: usize> {}
 /// utilised during.
 #[cfg(feature = "std")]
 #[derive(Debug)]
-#[pyo3::pyclass]
+#[cfg_attr(feature = "python-bindings", pyo3::pyclass)]
 pub struct DoipCodec {}
 
 // endregion:   --- std

@@ -30,7 +30,7 @@ debug = true
 
 [dependencies]
 derive_more = { version = "2.0.1", features = ["from"] }
-doip-definitions = { version = "3.0.11", default-features = false }
+doip-definitions = { git = "https://github.com/theswiftfox/doip-definitions.git", rev = "398c1bd" }
 heapless = "0.8.0"
 pyo3 = { version = "0.24.2", features = [
   "abi3-py311",
@@ -41,7 +41,6 @@ tokio-util = { version = "0.7.15", features = ["codec"] }
 
 [dev-dependencies]
 futures = "0.3.31"
-doip-definitions = { version = "3.0.7" }
 
 [lib]
 name = "doip_codec"
@@ -49,9 +48,11 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["std"]
-std = [
-  "pyo3",
-  "doip-definitions/std",
+std = []
+python-bindings = [
+  "std",
+  "dep:pyo3",
+  "doip-definitions/python-bindings",
 ] # Enable std and pyo3 when building for Python
 
 [package.metadata]

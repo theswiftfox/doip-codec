@@ -12,7 +12,7 @@
 // region:      --- Modules
 
 // Python bindings (only available when std is enabled)
-#[cfg(feature = "std")]
+#[cfg(feature = "python-bindings")]
 #[cfg(any(not(test), rust_analyzer))]
 mod bindings;
 
