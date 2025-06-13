@@ -138,7 +138,8 @@ impl tokio_util::codec::Decoder for DoipCodec {
             return Ok(None);
         };
 
-        let slice: &[u8] = &src[DOIP_HEADER_LEN..(DOIP_HEADER_LEN + header.payload_length as usize)];
+        let slice: &[u8] =
+            &src[DOIP_HEADER_LEN..DOIP_HEADER_LEN + (header.payload_length as usize)];
 
         let payload = match header.payload_type {
             PayloadType::GenericNack => DoipPayload::GenericNack(GenericNack::try_from(slice)?),
@@ -193,10 +194,37 @@ impl tokio_util::codec::Decoder for DoipCodec {
             }
         };
 
-        src.advance(DOIP_HEADER_LEN + (header.payload_length as usize));
+        let cnt = DOIP_HEADER_LEN + (header.payload_length as usize);
+        let advance_length = if src.remaining() >= cnt {
+            cnt
+        } else {
+            src.len()
+        };
+        src.advance(advance_length);
 
         Ok(Some(DoipMessage { header, payload }))
     }
 }
 
 // endregion:   --- std
+
+#[cfg(all(test, feature = "std"))]
+mod tests {
+    use tokio_util::codec::Decoder;
+
+    #[test]
+    fn test_decode() {
+        let payload = vec![
+            0x02, 0xfd, 0x80, 0x01, 0x00, 0x00, 0x00, 0x0b, 0x11, 0x06, 0x0f, 0x0d, 0x6a, 0xf0,
+            0x00, 0x00, 0x00, 0x00, 0x01,
+        ];
+        let mut codec = super::DoipCodec {};
+        let mut bytes = tokio_util::bytes::BytesMut::from(payload.as_slice());
+        let result = codec.decode(&mut bytes);
+        assert!(result.is_ok());
+
+        let mut bytes_incomplete = tokio_util::bytes::BytesMut::from(&payload[..12]);
+        let result_incomplete = codec.decode(&mut bytes_incomplete);
+        assert!(result_incomplete.is_ok());
+    }
+}
