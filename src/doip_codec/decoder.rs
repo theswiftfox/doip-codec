@@ -138,7 +138,7 @@ impl tokio_util::codec::Decoder for DoipCodec {
             return Ok(None);
         };
 
-        let slice: &[u8] = &src[DOIP_HEADER_LEN..(header.payload_length as usize)];
+        let slice: &[u8] = &src[DOIP_HEADER_LEN..(DOIP_HEADER_LEN + header.payload_length as usize)];
 
         let payload = match header.payload_type {
             PayloadType::GenericNack => DoipPayload::GenericNack(GenericNack::try_from(slice)?),
