@@ -30,7 +30,7 @@ debug = true
 
 [dependencies]
 derive_more = { version = "2.0.1", features = ["from"] }
-doip-definitions = { git = "https://github.com/theswiftfox/doip-definitions.git", rev = "398c1bd" }
+doip-definitions = { version = "3.0.12", default-features = false }
 heapless = "0.8.0"
 pyo3 = { version = "0.24.2", features = [
   "abi3-py311",
@@ -48,7 +48,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["std"]
-std = []
+std = ["doip-definitions/std"]
 python-bindings = [
   "std",
   "dep:pyo3",
