@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.8](https://github.com/samp-reston/doip-codec/compare/v2.0.7...v2.0.8) - 2025-06-26
+
+### Other
+
+- Update doip-defititions dependency to 3.0.12
+- Ensure src.advance does not go out of bounds
+- decouple pyo3 bindings from std featur
+
 ## [2.0.7](https://github.com/samp-reston/doip-codec/compare/v2.0.6...v2.0.7) - 2025-06-21
 
 ### Fixed
